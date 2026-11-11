@@ -1,0 +1,9 @@
+.env
+__pycache__/
+venv/
+.venv/
+data/
+uploads/
+chroma_db/
+*.sqlite
+*.db
