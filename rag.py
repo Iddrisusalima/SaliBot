@@ -207,3 +207,18 @@ def retrieve_from_rag(query: str, thread_id: str, k: int = 4) -> str:
         )
 
     return "\n\n".join(results)
+
+
+# --- SaliBot upgrade: used when a chat is deleted ---
+def delete_thread_documents(thread_id: str) -> list[str]:
+    """Remove a chat's document chunks from ChromaDB. Returns the file names removed."""
+    found = vectorstore.get(where={"thread_id": thread_id})
+    ids = found.get("ids", [])
+
+    if not ids:
+        return []
+
+    sources = {m.get("source") for m in found.get("metadatas", []) if m and m.get("source")}
+    vectorstore.delete(ids=ids)
+
+    return sorted(sources)

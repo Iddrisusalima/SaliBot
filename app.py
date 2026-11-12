@@ -48,6 +48,22 @@ from google import genai
 from google.genai import types as genai_types
 from agent import ALLOWED_MODELS, DEFAULT_MODEL, normalize_model_name
 
+# --- SaliBot upgrade: accounts and the chat menu (rename, pin, delete) ---
+import re
+from database import (
+    create_user,
+    authenticate_user,
+    create_login_session,
+    get_user_by_token,
+    delete_login_session,
+    get_conversation_owner,
+    claim_conversation,
+    rename_conversation,
+    set_conversation_pinned,
+    delete_conversation,
+)
+from rag import delete_thread_documents
+
 # SaliBot: show emojis and special characters correctly in the Windows terminal
 sys.stdout.reconfigure(encoding="utf-8")
 
@@ -154,6 +170,155 @@ def friendly_error(error: Exception, model: str) -> str:
     return f"Sorry, something went wrong: {text[:300]}"
 
 
+# ---------------------------------------------------------------
+# SaliBot upgrade: accounts
+# ---------------------------------------------------------------
+
+def get_token(request: Request) -> str | None:
+    header = request.headers.get("Authorization", "")
+    return header[7:] if header.startswith("Bearer ") else None
+
+
+def current_user(request: Request):
+    return get_user_by_token(get_token(request))
+
+
+def not_signed_in():
+    return JSONResponse({"error": "Please log in first."}, status_code=401)
+
+
+def can_use_thread(user, thread_id: str) -> bool:
+    """True if this chat is new or belongs to this user."""
+    exists, owner_id = get_conversation_owner(thread_id)
+
+    if not exists:
+        return True
+
+    if owner_id is None:
+        claim_conversation(thread_id, user.id)
+        return True
+
+    return owner_id == user.id
+
+
+def user_payload(user):
+    return {"id": user.id, "name": user.name, "email": user.email}
+
+
+EMAIL_PATTERN = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+
+
+@app.post("/auth/signup")
+async def signup(request: Request):
+    data = await request.json()
+    name = (data.get("name") or "").strip()
+    email = (data.get("email") or "").strip().lower()
+    password = data.get("password") or ""
+
+    if not name:
+        return JSONResponse({"error": "Please enter your name."}, status_code=400)
+    if not EMAIL_PATTERN.match(email):
+        return JSONResponse({"error": "Please enter a valid email address."}, status_code=400)
+    if len(password) < 8:
+        return JSONResponse({"error": "Password must be at least 8 characters."}, status_code=400)
+
+    user = create_user(name, email, password)
+
+    if not user:
+        return JSONResponse({"error": "An account with this email already exists. Try logging in."}, status_code=400)
+
+    return {"token": create_login_session(user.id), "user": user_payload(user)}
+
+
+@app.post("/auth/login")
+async def login(request: Request):
+    data = await request.json()
+    email = (data.get("email") or "").strip().lower()
+    password = data.get("password") or ""
+
+    user = authenticate_user(email, password)
+
+    if not user:
+        return JSONResponse({"error": "Wrong email or password."}, status_code=401)
+
+    return {"token": create_login_session(user.id), "user": user_payload(user)}
+
+
+@app.post("/auth/logout")
+async def logout(request: Request):
+    token = get_token(request)
+
+    if token:
+        delete_login_session(token)
+
+    return {"success": True}
+
+
+@app.get("/auth/me")
+async def me(request: Request):
+    user = current_user(request)
+
+    if not user:
+        return not_signed_in()
+
+    return {"user": user_payload(user)}
+
+
+# ---------------------------------------------------------------
+# SaliBot upgrade: chat menu (rename, pin, delete)
+# ---------------------------------------------------------------
+
+@app.patch("/conversations/{thread_id}")
+async def update_conversation(thread_id: str, request: Request):
+    user = current_user(request)
+    if not user:
+        return not_signed_in()
+
+    exists, owner_id = get_conversation_owner(thread_id)
+    if not exists or owner_id != user.id:
+        return JSONResponse({"error": "Chat not found."}, status_code=404)
+
+    data = await request.json()
+
+    if "title" in data:
+        title = (data.get("title") or "").strip()[:80]
+        if not title:
+            return JSONResponse({"error": "Title can't be empty."}, status_code=400)
+        rename_conversation(thread_id, title)
+
+    if "pinned" in data:
+        set_conversation_pinned(thread_id, bool(data["pinned"]))
+
+    return {"success": True}
+
+
+@app.delete("/conversations/{thread_id}")
+async def remove_conversation(thread_id: str, request: Request):
+    user = current_user(request)
+    if not user:
+        return not_signed_in()
+
+    exists, owner_id = get_conversation_owner(thread_id)
+    if not exists or owner_id != user.id:
+        return JSONResponse({"error": "Chat not found."}, status_code=404)
+
+    # 1. Messages, title and saved memories
+    delete_conversation(thread_id)
+
+    # 2. Uploaded documents (search database + the files themselves)
+    for source in delete_thread_documents(thread_id):
+        for path in Path("uploads").glob(f"*{source}"):
+            path.unlink(missing_ok=True)
+
+    # 3. LangGraph's own copy of the conversation
+    try:
+        get_agent().checkpointer.delete_thread(thread_id)
+    except Exception:
+        pass
+
+    return {"success": True}
+
+
 @app.get("/")
 async def home(request: Request):
     return templates.TemplateResponse(
@@ -169,8 +334,12 @@ def models():
 
 
 @app.get("/conversations")
-async def conversations():
-    items = list_conversations()
+async def conversations(request: Request):
+    user = current_user(request)          # SaliBot upgrade: only your own chats
+    if not user:
+        return not_signed_in()
+
+    items = list_conversations(user.id)
 
     return {
         "conversations": [
@@ -178,7 +347,8 @@ async def conversations():
                 "thread_id": item.thread_id,
                 "title": item.title,
                 "created_at": item.created_at.isoformat(),
-                "updated_at": item.updated_at.isoformat()
+                "updated_at": item.updated_at.isoformat(),
+                "pinned": bool(item.pinned)
             }
             for item in items
         ]
@@ -186,7 +356,13 @@ async def conversations():
 
 
 @app.get("/history/{thread_id}")
-async def history(thread_id: str):
+async def history(thread_id: str, request: Request):
+    user = current_user(request)
+    if not user:
+        return not_signed_in()
+    if not can_use_thread(user, thread_id):
+        return JSONResponse({"error": "Chat not found."}, status_code=404)
+
     messages = get_chat_history(thread_id)
 
     return {
@@ -202,9 +378,16 @@ async def history(thread_id: str):
 
 @app.post("/upload")
 async def upload_document(
+    request: Request,
     file: UploadFile = File(...),
     thread_id: str = Form(...)
 ):
+    user = current_user(request)
+    if not user:
+        return not_signed_in()
+    if not can_use_thread(user, thread_id):
+        return JSONResponse({"success": False, "message": "Chat not found."}, status_code=404)
+
     try:
         allowed_extensions = [".pdf", ".docx", ".txt", ".md", ".py", ".csv",
                               # SaliBot upgrade: Excel, PowerPoint and pictures
@@ -230,6 +413,7 @@ async def upload_document(
             f.write(await file.read())
 
         create_or_update_conversation(thread_id, "Uploaded document")
+        can_use_thread(user, thread_id)   # SaliBot: mark the new chat as yours
 
         result = add_document_to_rag(
             file_path=file_path,
@@ -252,8 +436,11 @@ async def upload_document(
 
 
 @app.post("/transcribe")
-def transcribe(file: UploadFile = File(...), model: str | None = Form(None)):
+def transcribe(request: Request, file: UploadFile = File(...), model: str | None = Form(None)):
     """🎤 Turn a recorded voice message into text using Gemini."""
+    if not current_user(request):
+        return not_signed_in()
+
     audio = file.file.read()
 
     if not audio:
@@ -291,6 +478,10 @@ def transcribe(file: UploadFile = File(...), model: str | None = Form(None)):
 
 @app.post("/chat/stream")
 async def chat_stream(request: Request):
+    user = current_user(request)          # SaliBot upgrade: must be logged in
+    if not user:
+        return not_signed_in()
+
     try:
         data = await request.json()
     except Exception:
@@ -309,9 +500,13 @@ async def chat_stream(request: Request):
             status_code=400
         )
 
+    if not can_use_thread(user, thread_id):
+        return JSONResponse({"error": "Chat not found."}, status_code=404)
+
     agent = get_agent(selected_model)
 
     create_or_update_conversation(thread_id, user_message)
+    can_use_thread(user, thread_id)   # SaliBot: mark the new chat as yours
     save_chat_message(thread_id, "user", user_message)
 
     set_current_thread_id(thread_id)

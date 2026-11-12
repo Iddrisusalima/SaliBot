@@ -134,19 +134,155 @@
     }
 
     .conversation {
-      text-align: left;
-      background: transparent;
-      border: none;
-      padding: 8px 10px;
+      display: flex;
+      align-items: center;
       border-radius: 10px;
-      font-size: 13.5px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
       flex-shrink: 0;
     }
     .conversation:hover { background: var(--hover); }
     .conversation.active { background: var(--panel-2); }
+
+    .conv-title {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      text-align: left;
+      background: none;
+      border: none;
+      padding: 8px 4px 8px 10px;
+      font-size: 13.5px;
+    }
+    .conv-title span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .conv-title svg { width: 13px; height: 13px; color: var(--muted); }
+
+    .conv-more {
+      background: none;
+      border: none;
+      color: var(--muted);
+      width: 28px;
+      height: 28px;
+      margin-right: 4px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      opacity: 0;
+    }
+    .conversation:hover .conv-more,
+    .conversation.active .conv-more,
+    .conv-more.open { opacity: 1; }
+    .conv-more:hover { background: var(--panel); color: var(--text); }
+    @media (hover: none) { .conv-more { opacity: 1; } }
+
+    .rename-input {
+      flex: 1;
+      min-width: 0;
+      margin: 4px 6px;
+      background: var(--panel);
+      border: 1px solid var(--violet);
+      border-radius: 8px;
+      padding: 6px 8px;
+      color: var(--text);
+      font: inherit;
+      font-size: 13.5px;
+      outline: none;
+    }
+
+    /* Small pop-up menu (chat ⋯ menu and profile menu) */
+    .pop-menu {
+      position: fixed;
+      z-index: 50;
+      min-width: 170px;
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 5px;
+      box-shadow: 0 12px 34px rgba(0, 0, 0, .45);
+      display: none;
+    }
+    .pop-menu.open { display: block; }
+    .pop-menu button {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      background: none;
+      border: none;
+      text-align: left;
+      padding: 9px 10px;
+      border-radius: 8px;
+      font-size: 13.5px;
+    }
+    .pop-menu button:hover { background: var(--hover); }
+    .pop-menu button svg { width: 16px; height: 16px; color: var(--muted); }
+    .pop-menu button.danger { color: var(--danger); }
+    .pop-menu button.danger svg { color: var(--danger); }
+
+    /* Account screen */
+    .auth-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      background: var(--bg);
+      display: none;
+      place-items: center;
+      padding: 16px;
+    }
+    .auth-screen.open { display: grid; }
+    .auth-card {
+      width: 100%;
+      max-width: 380px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 28px 24px;
+    }
+    .auth-card h1 { margin: 0 0 4px; font-size: 24px; text-align: center; }
+    .auth-card p { margin: 0 0 20px; text-align: center; color: var(--muted); font-size: 14px; }
+    .auth-tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      background: var(--bg);
+      border-radius: 12px;
+      padding: 4px;
+      margin-bottom: 18px;
+    }
+    .auth-tabs button {
+      background: none;
+      border: none;
+      padding: 9px;
+      border-radius: 9px;
+      font-size: 14px;
+      color: var(--muted);
+    }
+    .auth-tabs button.active { background: var(--panel-2); color: var(--text); font-weight: 600; }
+    .auth-card label { display: block; font-size: 13px; color: var(--muted); margin: 12px 0 6px; }
+    .auth-card input {
+      width: 100%;
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 11px 12px;
+      color: var(--text);
+      font: inherit;
+      font-size: 14.5px;
+      outline: none;
+    }
+    .auth-card input:focus { border-color: var(--violet); }
+    .auth-error { color: var(--danger); font-size: 13px; min-height: 18px; margin-top: 12px; }
+    .auth-submit {
+      width: 100%;
+      margin-top: 8px;
+      border: none;
+      border-radius: 12px;
+      padding: 12px;
+      background: var(--accent);
+      color: #fff;
+      font-size: 15px;
+      font-weight: 600;
+    }
+    .auth-submit:disabled { opacity: .6; cursor: wait; }
 
     .empty-list { color: var(--muted); font-size: 13px; padding: 8px 10px; }
 
@@ -154,10 +290,18 @@
       display: flex;
       align-items: center;
       gap: 10px;
-      padding: 10px 8px 4px;
+      width: 100%;
+      background: none;
+      border: none;
       border-top: 1px solid var(--border);
+      border-radius: 0;
+      text-align: left;
+      padding: 12px 8px 6px;
       margin-top: 6px;
     }
+    .profile:hover .profile-name { color: var(--teal); }
+    .profile > div:last-child { min-width: 0; }
+    .profile-name, .profile-sub { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .avatar-circle {
       width: 32px;
       height: 32px;
@@ -510,6 +654,10 @@
       <symbol id="i-globe" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></symbol>
       <symbol id="i-doc" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8Z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></symbol>
       <symbol id="i-brain" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5a3 3 0 0 0-5.9.6A3 3 0 0 0 4 11a3 3 0 0 0 2 5.2A3 3 0 0 0 12 18Z"/><path d="M12 5a3 3 0 0 1 5.9.6A3 3 0 0 1 20 11a3 3 0 0 1-2 5.2A3 3 0 0 1 12 18Z"/></symbol>
+      <symbol id="i-dots" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></symbol>
+      <symbol id="i-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17v5M9 3h6l-1 6 4 4H6l4-4Z"/></symbol>
+      <symbol id="i-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></symbol>
+      <symbol id="i-logout" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4h4v16h-4M10 8l-4 4 4 4M6 12h11"/></symbol>
       <symbol id="i-calc" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 12h.01M12 12h.01M16 12h.01M8 16h.01M12 16h.01M16 16h.01"/></symbol>
     </defs>
   </svg>
@@ -531,16 +679,51 @@
     <div class="section-title">Recents</div>
     <div class="conversation-list" id="conversationList"></div>
 
-    <div class="profile">
-      <div class="avatar-circle">S</div>
+    <button class="profile" id="profileBtn" title="Account">
+      <div class="avatar-circle" id="profileInitial">S</div>
       <div>
-        <div class="profile-name">Salima</div>
-        <div class="profile-sub">SaliBot · Powered by Gemini</div>
+        <div class="profile-name" id="profileName">Salima</div>
+        <div class="profile-sub" id="profileEmail">SaliBot · Powered by Gemini</div>
       </div>
-    </div>
+    </button>
   </aside>
 
   <div class="overlay" id="overlay"></div>
+
+  <!-- SaliBot upgrade: chat ⋯ menu and profile menu -->
+  <div class="pop-menu" id="chatMenu">
+    <button id="menuPin"><svg><use href="#i-pin"/></svg><span>Pin</span></button>
+    <button id="menuRename"><svg><use href="#i-edit"/></svg>Rename</button>
+    <button id="menuDelete" class="danger"><svg><use href="#i-trash"/></svg>Delete</button>
+  </div>
+  <div class="pop-menu" id="profileMenu">
+    <button id="logoutBtn"><svg><use href="#i-logout"/></svg>Log out</button>
+  </div>
+
+  <!-- SaliBot upgrade: create account / log in -->
+  <div class="auth-screen" id="authScreen">
+    <form class="auth-card" id="authForm">
+      <h1>SaliBot</h1>
+      <p id="authSubtitle">Create your account to start chatting.</p>
+
+      <div class="auth-tabs">
+        <button type="button" id="tabSignup" class="active">Create account</button>
+        <button type="button" id="tabLogin">Log in</button>
+      </div>
+
+      <div id="nameField">
+        <label for="authName">Name</label>
+        <input id="authName" type="text" autocomplete="name" placeholder="Your name">
+      </div>
+      <label for="authEmail">Email</label>
+      <input id="authEmail" type="email" autocomplete="email" placeholder="you@example.com">
+      <label for="authPassword">Password</label>
+      <input id="authPassword" type="password" autocomplete="new-password" placeholder="At least 8 characters">
+
+      <div class="auth-error" id="authError"></div>
+      <button type="submit" class="auth-submit" id="authSubmit">Create account</button>
+    </form>
+  </div>
 
   <main class="main empty" id="main">
     <header class="topbar">
@@ -556,7 +739,7 @@
     </section>
 
     <div class="composer-wrap">
-      <h1 class="hero">What are we exploring today, <span>Salima</span>?</h1>
+      <h1 class="hero">What are we exploring today, <span id="heroName">Salima</span>?</h1>
       <p class="hero-sub">Ask questions, upload documents, use tools, search the web, and chat with memory.</p>
 
       <div class="composer">
@@ -627,6 +810,24 @@
 
     let threadId = safeGet("thread_id") || makeId();
     safeSet("thread_id", threadId);
+
+    // SaliBot upgrade: every request carries your login token
+    let authToken = safeGet("auth_token");
+    let currentUser = null;
+
+    async function api(url, options = {}) {
+      options.headers = { ...(options.headers || {}) };
+      if (authToken) options.headers.Authorization = `Bearer ${authToken}`;
+
+      const res = await fetch(url, options);
+
+      if (res.status === 401) {
+        showAuth("login");
+        throw new Error("Please log in first.");
+      }
+
+      return res;
+    }
 
     function icon(name) {
       return `<svg><use href="#${name}"/></svg>`;
@@ -742,7 +943,7 @@
 
     async function loadConversations() {
       try {
-        const res = await fetch("/conversations");
+        const res = await api("/conversations");
         const data = await res.json();
         const chats = data.conversations || [];
         conversationList.innerHTML = "";
@@ -753,12 +954,25 @@
         }
 
         chats.forEach(chat => {
-          const btn = document.createElement("button");
-          btn.className = "conversation" + (chat.thread_id === threadId ? " active" : "");
-          btn.textContent = chat.title || "New chat";
-          btn.title = chat.title || "New chat";
-          btn.onclick = () => openConversation(chat.thread_id);
-          conversationList.appendChild(btn);
+          const title = chat.title || "New chat";
+          const row = document.createElement("div");
+          row.className = "conversation" + (chat.thread_id === threadId ? " active" : "");
+
+          const open = document.createElement("button");
+          open.className = "conv-title";
+          open.title = title;
+          open.innerHTML = (chat.pinned ? icon("i-pin") : "") + "<span></span>";
+          open.querySelector("span").textContent = title;
+          open.onclick = () => openConversation(chat.thread_id);
+
+          const more = document.createElement("button");
+          more.className = "conv-more";
+          more.title = "More options";
+          more.innerHTML = icon("i-dots");
+          more.onclick = (e) => { e.stopPropagation(); openChatMenu(more, chat, row); };
+
+          row.append(open, more);
+          conversationList.appendChild(row);
         });
 
         filterConversations();
@@ -777,7 +991,13 @@
     async function loadHistory() {
       chatInner.innerHTML = "";
       try {
-        const res = await fetch(`/history/${encodeURIComponent(threadId)}`);
+        const res = await api(`/history/${encodeURIComponent(threadId)}`);
+        if (res.status === 404) {          // not your chat (e.g. after switching accounts)
+          threadId = makeId();
+          safeSet("thread_id", threadId);
+          showWelcome();
+          return;
+        }
         const data = await res.json();
         const messages = data.messages || [];
 
@@ -843,7 +1063,7 @@
       };
 
       try {
-        const res = await fetch("/chat/stream", {
+        const res = await api("/chat/stream", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ message: text, thread_id: threadId, model: modelSelect.value })
@@ -904,7 +1124,7 @@
       form.append("thread_id", threadId);
 
       try {
-        const res = await fetch("/upload", { method: "POST", body: form });
+        const res = await api("/upload", { method: "POST", body: form });
         const data = await res.json();
         pending.remove();
 
@@ -1016,7 +1236,7 @@
       form.append("model", modelSelect.value);
 
       try {
-        const res = await fetch("/transcribe", { method: "POST", body: form });
+        const res = await api("/transcribe", { method: "POST", body: form });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "Couldn't understand the recording.");
 
@@ -1078,11 +1298,224 @@
       }
     });
 
+    // ---------- SaliBot upgrade: accounts ----------
+    function showAuth(mode = "signup") {
+      setAuthMode(mode);
+      document.getElementById("authScreen").classList.add("open");
+      (mode === "signup" ? authName : authEmail).focus();
+    }
+
+    function hideAuth() {
+      document.getElementById("authScreen").classList.remove("open");
+      authError.textContent = "";
+      authPassword.value = "";
+    }
+
+    let authMode = "signup";
+    const authName = document.getElementById("authName");
+    const authEmail = document.getElementById("authEmail");
+    const authPassword = document.getElementById("authPassword");
+    const authError = document.getElementById("authError");
+    const authSubmit = document.getElementById("authSubmit");
+
+    function setAuthMode(mode) {
+      authMode = mode;
+      const signup = mode === "signup";
+      document.getElementById("tabSignup").classList.toggle("active", signup);
+      document.getElementById("tabLogin").classList.toggle("active", !signup);
+      document.getElementById("nameField").style.display = signup ? "" : "none";
+      document.getElementById("authSubtitle").textContent =
+        signup ? "Create your account to start chatting." : "Welcome back! Log in to your chats.";
+      authPassword.autocomplete = signup ? "new-password" : "current-password";
+      authSubmit.textContent = signup ? "Create account" : "Log in";
+      authError.textContent = "";
+    }
+
+    function applyUser(user) {
+      currentUser = user;
+      const firstName = (user.name || "").split(" ")[0] || "there";
+      document.getElementById("heroName").textContent = firstName;
+      document.getElementById("profileName").textContent = user.name;
+      document.getElementById("profileEmail").textContent = user.email;
+      document.getElementById("profileInitial").textContent = (user.name || "?").charAt(0).toUpperCase();
+    }
+
+    async function startApp(user) {
+      applyUser(user);
+      hideAuth();
+      await loadConversations();
+      await loadHistory();
+    }
+
+    document.getElementById("authForm").onsubmit = async (e) => {
+      e.preventDefault();
+      authError.textContent = "";
+      authSubmit.disabled = true;
+
+      const body = { email: authEmail.value, password: authPassword.value };
+      if (authMode === "signup") body.name = authName.value;
+
+      try {
+        const res = await fetch(`/auth/${authMode === "signup" ? "signup" : "login"}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body)
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+          authError.textContent = data.error || "Something went wrong.";
+          return;
+        }
+
+        authToken = data.token;
+        safeSet("auth_token", authToken);
+        await startApp(data.user);
+      } catch (err) {
+        authError.textContent = "Couldn't reach SaliBot. Is the server running?";
+      } finally {
+        authSubmit.disabled = false;
+      }
+    };
+
+    document.getElementById("tabSignup").onclick = () => setAuthMode("signup");
+    document.getElementById("tabLogin").onclick = () => setAuthMode("login");
+
+    async function logout() {
+      closeMenus();
+      try { await api("/auth/logout", { method: "POST" }); } catch {}
+      authToken = null;
+      currentUser = null;
+      try { localStorage.removeItem("auth_token"); } catch {}
+      threadId = makeId();
+      safeSet("thread_id", threadId);
+      conversationList.innerHTML = "";
+      showWelcome();
+      showAuth("login");
+    }
+
+    // ---------- SaliBot upgrade: chat ⋯ menu (pin, rename, delete) ----------
+    const chatMenu = document.getElementById("chatMenu");
+    const profileMenu = document.getElementById("profileMenu");
+    let menuChat = null;
+    let menuRow = null;
+
+    function closeMenus() {
+      chatMenu.classList.remove("open");
+      profileMenu.classList.remove("open");
+      document.querySelectorAll(".conv-more.open").forEach(b => b.classList.remove("open"));
+    }
+
+    function placeMenu(menu, anchor, above = false) {
+      menu.classList.add("open");
+      const r = anchor.getBoundingClientRect();
+      const w = menu.offsetWidth, h = menu.offsetHeight;
+      let left = Math.min(r.left, window.innerWidth - w - 8);
+      let top = above ? r.top - h - 6 : r.bottom + 4;
+      if (top + h > window.innerHeight - 8) top = r.top - h - 4;
+      menu.style.left = Math.max(8, left) + "px";
+      menu.style.top = Math.max(8, top) + "px";
+    }
+
+    function openChatMenu(button, chat, row) {
+      const wasOpen = button.classList.contains("open");
+      closeMenus();
+      if (wasOpen) return;
+      menuChat = chat;
+      menuRow = row;
+      button.classList.add("open");
+      document.querySelector("#menuPin span").textContent = chat.pinned ? "Unpin" : "Pin";
+      placeMenu(chatMenu, button);
+    }
+
+    document.getElementById("menuPin").onclick = async () => {
+      const chat = menuChat;
+      closeMenus();
+      await api(`/conversations/${encodeURIComponent(chat.thread_id)}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pinned: !chat.pinned })
+      });
+      loadConversations();
+    };
+
+    document.getElementById("menuRename").onclick = () => {
+      const chat = menuChat, row = menuRow;
+      closeMenus();
+
+      const input = document.createElement("input");
+      input.className = "rename-input";
+      input.value = chat.title || "";
+      row.innerHTML = "";
+      row.appendChild(input);
+      input.focus();
+      input.select();
+
+      let done = false;
+      const finish = async (save) => {
+        if (done) return;
+        done = true;
+        const title = input.value.trim();
+        if (save && title && title !== chat.title) {
+          await api(`/conversations/${encodeURIComponent(chat.thread_id)}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ title })
+          });
+        }
+        loadConversations();
+      };
+
+      input.onkeydown = (e) => {
+        if (e.key === "Enter") { e.preventDefault(); finish(true); }
+        if (e.key === "Escape") finish(false);
+      };
+      input.onblur = () => finish(true);
+    };
+
+    document.getElementById("menuDelete").onclick = async () => {
+      const chat = menuChat;
+      closeMenus();
+      const ok = confirm(`Delete "${chat.title || "this chat"}"?\n\nIts messages, saved memories and uploaded documents will be removed. This can't be undone.`);
+      if (!ok) return;
+
+      const res = await api(`/conversations/${encodeURIComponent(chat.thread_id)}`, { method: "DELETE" });
+      if (!res.ok) { alert("Couldn't delete this chat. Please try again."); return; }
+
+      if (chat.thread_id === threadId) newChat();
+      else loadConversations();
+    };
+
+    document.getElementById("profileBtn").onclick = (e) => {
+      e.stopPropagation();
+      const wasOpen = profileMenu.classList.contains("open");
+      closeMenus();
+      if (!wasOpen) placeMenu(profileMenu, e.currentTarget, true);
+    };
+    document.getElementById("logoutBtn").onclick = logout;
+
+    document.addEventListener("click", (e) => {
+      if (!e.target.closest(".pop-menu")) closeMenus();
+    });
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeMenus(); });
+    window.addEventListener("resize", closeMenus);
+    conversationList.addEventListener("scroll", closeMenus);
+
     // ---------- Start ----------
     buildSuggestions();
     loadModels();
-    loadConversations();
-    loadHistory();
+
+    (async () => {
+      if (!authToken) { showAuth("signup"); return; }
+      try {
+        const res = await fetch("/auth/me", { headers: { Authorization: `Bearer ${authToken}` } });
+        if (!res.ok) throw new Error();
+        const data = await res.json();
+        await startApp(data.user);
+      } catch {
+        showAuth("login");
+      }
+    })();
   </script>
 </body>
 </html>
