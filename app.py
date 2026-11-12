@@ -62,15 +62,6 @@ Path("data").mkdir(exist_ok=True)
 
 init_db()
 
-UPLOAD_DIR = Path("uploads")
-
-# Course types + SaliBot upgrade types (Excel, PowerPoint, images)
-ALLOWED_UPLOADS = {
-    ".pdf", ".docx", ".txt", ".md", ".py", ".csv",
-    ".xlsx", ".pptx",
-    ".png", ".jpg", ".jpeg", ".webp",
-}
-
 
 class ChatRequest(BaseModel):
     message: str
@@ -155,36 +146,54 @@ async def history(thread_id: str):
 
 
 @app.post("/upload")
-async def upload(file: UploadFile = File(...), thread_id: str = Form(...)):
-    filename = Path(file.filename or "").name
-    suffix = Path(filename).suffix.lower()
+async def upload_document(
+    file: UploadFile = File(...),
+    thread_id: str = Form(...)
+):
+    try:
+        allowed_extensions = [".pdf", ".docx", ".txt", ".md", ".py", ".csv",
+                              # SaliBot upgrade: Excel, PowerPoint and pictures
+                              ".xlsx", ".pptx", ".png", ".jpg", ".jpeg", ".webp"]
 
-    if suffix not in ALLOWED_UPLOADS:
-        return JSONResponse(
-            status_code=400,
-            content={"error": f"Sorry, {suffix or 'this file type'} isn't supported yet."},
+        filename = file.filename or "uploaded_file"
+        suffix = Path(filename).suffix.lower()
+
+        if suffix not in allowed_extensions:
+            return JSONResponse(
+                {
+                    "success": False,
+                    "message": "Unsupported file type. Upload PDF, DOCX, TXT, MD, PY, CSV, XLSX, PPTX, or an image (PNG, JPG, JPEG, WEBP)."
+                },
+                status_code=400
+            )
+
+        file_id = str(uuid.uuid4())
+        safe_filename = filename.replace(" ", "_")
+        file_path = f"uploads/{file_id}_{safe_filename}"
+
+        with open(file_path, "wb") as f:
+            f.write(await file.read())
+
+        create_or_update_conversation(thread_id, "Uploaded document")
+
+        result = add_document_to_rag(
+            file_path=file_path,
+            thread_id=thread_id
         )
 
-    # Keep each chat's files in its own folder
-    folder = UPLOAD_DIR / thread_id
-    folder.mkdir(parents=True, exist_ok=True)
-    saved_path = folder / filename
-    saved_path.write_bytes(await file.read())
+        return JSONResponse({
+            "success": True,
+            "message": f"Uploaded {result['filename']} and created {result['chunks']} chunks."
+        })
 
-    try:
-        result = add_document_to_rag(str(saved_path), thread_id)
     except Exception as e:
-        return JSONResponse(status_code=400, content={"error": str(e)})
-
-    create_or_update_conversation(thread_id, f"📎 {filename}")
-    chunk_word = "chunk" if result["chunks"] == 1 else "chunks"
-    save_chat_message(
-        thread_id,
-        "system",
-        f"📎 Uploaded **{result['filename']}** ({result['chunks']} {chunk_word})",
-    )
-
-    return result
+        return JSONResponse(
+            {
+                "success": False,
+                "message": str(e)
+            },
+            status_code=500
+        )
 
 
 @app.post("/transcribe")

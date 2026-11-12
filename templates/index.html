@@ -895,11 +895,10 @@
         const data = await res.json();
         pending.remove();
 
-        if (!res.ok) {
-          addNote(`⚠️ ${data.error || "Upload failed."}`, true);
+        if (!res.ok || !data.success) {
+          addNote(`⚠️ ${data.message || "Upload failed."}`, true);
         } else {
-          const chunkWord = data.chunks === 1 ? "chunk" : "chunks";
-          addNote(`📎 Uploaded **${data.filename}** (${data.chunks} ${chunkWord}) — ask me about it!`);
+          addNote(`📎 ${data.message} Ask me about it!`);
         }
       } catch (e) {
         pending.remove();
