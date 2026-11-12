@@ -647,6 +647,11 @@
     }
 
     function autoResize() {
+      // Empty box → back to a single line
+      if (!messageInput.value) {
+        messageInput.style.height = "";
+        return;
+      }
       messageInput.style.height = "auto";
       messageInput.style.height = Math.min(messageInput.scrollHeight, 200) + "px";
     }
@@ -847,25 +852,27 @@
           if (done) break;
           buffer += decoder.decode(value, { stream: true });
 
-          const lines = buffer.split("\n");
-          buffer = lines.pop();
+          // The server sends events like:  data: {"token": "Hello"}\n\n
+          const events = buffer.split("\n\n");
+          buffer = events.pop();
 
-          for (const line of lines) {
-            if (!line.trim()) continue;
-            const event = JSON.parse(line);
+          for (const raw of events) {
+            const line = raw.trim();
+            if (!line.startsWith("data:")) continue;
+            const event = JSON.parse(line.slice(5).trim());
 
-            if (event.type === "token") {
-              reply += event.text;
+            if (event.token) {
+              reply += event.token;
               queueRender();
-            } else if (event.type === "tool") {
-              const label = TOOL_LABELS[event.name] || `🛠️ Using ${event.name}`;
+            } else if (event.tool) {
+              const label = TOOL_LABELS[event.tool] || `🛠️ Using ${event.tool}`;
               const chip = document.createElement("span");
               chip.className = "tool-chip";
               chip.textContent = label;
               toolsBox.appendChild(chip);
               statusText.textContent = label + "...";
-            } else if (event.type === "error") {
-              reply += `\n\n⚠️ ${event.message}`;
+            } else if (event.error) {
+              reply += `\n\n⚠️ ${event.error}`;
               queueRender();
             }
           }

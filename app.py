@@ -63,21 +63,76 @@ Path("data").mkdir(exist_ok=True)
 init_db()
 
 
-class ChatRequest(BaseModel):
-    message: str
-    thread_id: str
-    model: str | None = None
+def sse_data(payload: dict) -> str:
+    return f"data: {json.dumps(payload, ensure_ascii=False)}\n\n"
 
 
-def chunk_text(content) -> str:
-    """Newer Gemini models send text as a list of parts. Keep only the text."""
+def should_stream_chunk(chunk, metadata) -> bool:
+    """
+    This prevents raw tool/search/RAG JSON from appearing in the frontend.
+
+    We only stream normal AI text chunks.
+    We do NOT stream:
+    - ToolMessage
+    - messages from tool nodes
+    - tool call chunks
+    - raw tool outputs
+    """
+
+    metadata = metadata or {}
+
+    node_name = str(metadata.get("langgraph_node", "")).lower()
+
+    if "tool" in node_name:
+        return False
+
+    if isinstance(chunk, ToolMessage):
+        return False
+
+    if not isinstance(chunk, (AIMessage, AIMessageChunk)):
+        return False
+
+    if getattr(chunk, "tool_calls", None):
+        return False
+
+    if getattr(chunk, "invalid_tool_calls", None):
+        return False
+
+    additional_kwargs = getattr(chunk, "additional_kwargs", {}) or {}
+
+    if additional_kwargs.get("tool_calls"):
+        return False
+
+    return True
+
+
+def extract_text_from_chunk(chunk) -> str:
+    content = getattr(chunk, "content", "")
+
+    if not content:
+        return ""
+
     if isinstance(content, str):
         return content
 
-    return "".join(
-        part.get("text", "") if isinstance(part, dict) else str(part)
-        for part in content
-    )
+    if isinstance(content, list):
+        text_parts = []
+
+        for item in content:
+            if isinstance(item, str):
+                text_parts.append(item)
+
+            elif isinstance(item, dict):
+                if item.get("type") == "text" and isinstance(item.get("text"), str):
+                    text_parts.append(item["text"])
+                elif isinstance(item.get("text"), str):
+                    text_parts.append(item["text"])
+                elif isinstance(item.get("content"), str):
+                    text_parts.append(item["content"])
+
+        return "".join(text_parts)
+
+    return ""
 
 
 def friendly_error(error: Exception, model: str) -> str:
@@ -235,52 +290,80 @@ def transcribe(file: UploadFile = File(...), model: str | None = Form(None)):
 
 
 @app.post("/chat/stream")
-def chat_stream(req: ChatRequest):
-    message = req.message.strip()
-    thread_id = req.thread_id
-    model = normalize_model_name(req.model)
+async def chat_stream(request: Request):
+    try:
+        data = await request.json()
+    except Exception:
+        return JSONResponse(
+            {"error": "Invalid JSON body."},
+            status_code=400
+        )
 
-    create_or_update_conversation(thread_id, message)
-    save_chat_message(thread_id, "user", message)
+    user_message = data.get("message", "")
+    thread_id = data.get("thread_id", "default")
+    selected_model = data.get("model", DEFAULT_MODEL)   # SaliBot: video uses "gemini-2.5-flash" (closed to new accounts)
 
-    # Tell the tools which chat we're in (for documents and memory)
+    if not user_message.strip():
+        return JSONResponse(
+            {"error": "Message is required."},
+            status_code=400
+        )
+
+    agent = get_agent(selected_model)
+
+    create_or_update_conversation(thread_id, user_message)
+    save_chat_message(thread_id, "user", user_message)
+
     set_current_thread_id(thread_id)
 
-    agent = get_agent(model)
-    config = {"configurable": {"thread_id": thread_id}}
+    config = {
+        "configurable": {
+            "thread_id": thread_id
+        }
+    }
 
-    def event_stream():
-        full_reply = ""
+    def event_generator():
+        final_answer = ""
 
         try:
-            for message_chunk, metadata in agent.stream(
-                {"messages": [HumanMessage(content=message)]},
+            inputs = {
+                "messages": [
+                    HumanMessage(content=user_message)
+                ]
+            }
+
+            for chunk, metadata in agent.stream(
+                inputs,
                 config=config,
-                stream_mode="messages",
+                stream_mode="messages"
             ):
-                # Only SaliBot's own words — skip raw tool output
-                if metadata.get("langgraph_node") != "chatbot":
+                # SaliBot extra: tell the page which tool is running (🌐 Searching the web, etc.)
+                for call in getattr(chunk, "tool_call_chunks", None) or []:
+                    if call.get("name"):
+                        yield sse_data({"tool": call["name"]})
+
+                if not should_stream_chunk(chunk, metadata):
                     continue
 
-                # Let the page show "Searching the web..." etc.
-                for call in getattr(message_chunk, "tool_call_chunks", None) or []:
-                    if call.get("name"):
-                        yield json.dumps({"type": "tool", "name": call["name"]}) + "\n"
+                token = extract_text_from_chunk(chunk)
 
-                text = chunk_text(message_chunk.content)
-                if text:
-                    full_reply += text
-                    yield json.dumps({"type": "token", "text": text}) + "\n"
+                if token:
+                    final_answer += token
+                    yield sse_data({"token": token})
+
+            if final_answer.strip():
+                save_chat_message(thread_id, "assistant", final_answer)
+
+            yield sse_data({"done": True})
 
         except Exception as e:
-            error = friendly_error(e, model)
-            full_reply += f"\n\n⚠️ {error}"
-            yield json.dumps({"type": "error", "message": error}) + "\n"
+            # SaliBot extra: short, friendly message instead of Google's long error
+            yield sse_data({"error": friendly_error(e, normalize_model_name(selected_model))})
 
-        save_chat_message(thread_id, "assistant", full_reply)
-        yield json.dumps({"type": "done"}) + "\n"
-
-    return StreamingResponse(event_stream(), media_type="application/x-ndjson")
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream"
+    )
 
 
 if __name__ == "__main__":
