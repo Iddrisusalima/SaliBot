@@ -256,12 +256,15 @@
       width: 30px;
       height: 30px;
       flex-shrink: 0;
-      border-radius: 9px;
-      background: var(--accent);
+      border-radius: 50%;
+      background: var(--teal);
+      color: #06201c;
       display: grid;
       place-items: center;
-      font-size: 15px;
+      font-size: 11.5px;
+      font-weight: 700;
     }
+    .avatar.you { background: var(--violet); color: #fff; }
 
     .bubble {
       min-width: 0;
@@ -510,7 +513,6 @@
 
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-head">
-      <div class="logo">🤖</div>
       <div class="brand-name">SaliBot</div>
       <button class="icon-only" id="searchToggle" title="Search chats"><svg><use href="#i-search"/></svg></button>
       <button class="icon-only collapse-btn" id="collapseBtn" title="Close sidebar"><svg><use href="#i-panel"/></svg></button>
@@ -689,6 +691,10 @@
       bubble.className = "bubble";
       bubble.textContent = text;
       row.appendChild(bubble);
+      const you = document.createElement("div");
+      you.className = "avatar you";
+      you.textContent = "U";
+      row.appendChild(you);
       chatInner.appendChild(row);
       scrollToBottom();
     }
@@ -697,7 +703,7 @@
       clearWelcome();
       const row = document.createElement("div");
       row.className = "message bot";
-      row.innerHTML = `<div class="avatar">🤖</div><div class="bubble"><div class="tools"></div><div class="content"></div></div>`;
+      row.innerHTML = `<div class="avatar">AI</div><div class="bubble"><div class="tools"></div><div class="content"></div></div>`;
       chatInner.appendChild(row);
       const content = row.querySelector(".content");
       if (text) renderMarkdown(content, text);
