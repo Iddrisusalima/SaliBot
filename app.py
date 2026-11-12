@@ -2,7 +2,7 @@
 SaliBot web server (FastAPI).
 
 Run it with:   python app.py
-Then open:     http://127.0.0.1:8000
+Then open:     http://127.0.0.1:8080
 """
 
 from dotenv import load_dotenv
@@ -263,12 +263,10 @@ def chat_stream(req: ChatRequest):
 
 
 if __name__ == "__main__":
-    host = os.getenv("APP_HOST", "127.0.0.1")
-    port = int(os.getenv("APP_PORT", "8000"))
 
     uvicorn.run(
-        "app:app",   # SaliBot: our file is app.py, so it's "app:app" (the video says "main:app")
-        host=host,
-        port=port,
+        "app:app",
+        host="0.0.0.0",
+        port=8080,
         reload=True
     )
