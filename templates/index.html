@@ -796,10 +796,13 @@
     }
 
     async function sendMessage() {
+      // Pressing ↑ while recording: stop, write it down, then send
+      if (isRecording) { sendAfterTranscribe = true; stopRecording(); return; }
+      if (isTranscribing) { sendAfterTranscribe = true; return; }
+
       const text = messageInput.value.trim();
       if (!text || isBusy) return;
 
-      if (isDictating) stopDictation();
       messageInput.value = "";
       autoResize();
       addUserMessage(text);
@@ -902,83 +905,119 @@
       }
     }
 
-    // ---------- 🎤 Voice input (browser speech recognition) ----------
-    let isDictating = false;
-    let speechRecognition = null;
-    let textBeforeDictation = "";
+    // ---------- 🎤 Voice input: record your voice → Gemini writes it down ----------
+    // (More reliable than the browser's speech recognition, which needs
+    //  Google's speech servers and can fail silently on some networks.)
+    let isRecording = false;
+    let isTranscribing = false;
+    let sendAfterTranscribe = false;
+    let mediaRecorder = null;
+    let audioChunks = [];
+    let recordTimer = null;
 
-    function setupSpeechRecognition() {
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-
-      if (!SpeechRecognition) {
-        return null;
-      }
-
-      const recognition = new SpeechRecognition();
-      recognition.lang = "en-US";
-      recognition.continuous = true;
-      recognition.interimResults = true;
-
-      recognition.onstart = () => {
-        isDictating = true;
-        micBtn.classList.add("recording");
-        micBtn.innerHTML = icon("i-stop");
-        micBtn.title = "Stop listening";
-        statusText.textContent = "Listening...";
-        textBeforeDictation = messageInput.value ? messageInput.value.trim() + " " : "";
-      };
-
-      recognition.onresult = (event) => {
-        let finalTranscript = "";
-        let interimTranscript = "";
-
-        for (let i = 0; i < event.results.length; i++) {
-          const transcript = event.results[i][0].transcript;
-          if (event.results[i].isFinal) finalTranscript += transcript;
-          else interimTranscript += transcript;
-        }
-
-        messageInput.value = textBeforeDictation + finalTranscript + interimTranscript;
-        autoResize();
-        noticeText.textContent = interimTranscript ? "Listening: " + interimTranscript : "Listening...";
-      };
-
-      recognition.onerror = (event) => {
-        console.error("Speech recognition error:", event.error);
-        if (event.error === "not-allowed") {
-          alert("Microphone permission denied. Please allow microphone access.");
-        }
-        stopDictation();
-      };
-
-      recognition.onend = () => {
-        if (isDictating) {
-          try { recognition.start(); } catch { stopDictation(); }
-        }
-      };
-
-      return recognition;
+    function pickMimeType() {
+      const options = ["audio/webm;codecs=opus", "audio/webm", "audio/ogg;codecs=opus", "audio/mp4"];
+      return options.find(t => window.MediaRecorder && MediaRecorder.isTypeSupported(t)) || "";
     }
 
-    function startDictation() {
-      if (!speechRecognition) speechRecognition = setupSpeechRecognition();
-      if (!speechRecognition) {
-        alert("Voice input works in Chrome or Edge. Your browser doesn't support it.");
+    async function startRecording() {
+      if (isBusy || isTranscribing) return;
+
+      if (!navigator.mediaDevices || !window.MediaRecorder) {
+        alert("Your browser can't record audio. Please use Chrome or Edge.");
         return;
       }
-      try { speechRecognition.start(); } catch {}
+
+      let stream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      } catch (e) {
+        alert("SaliBot couldn't use your microphone. Click the icon on the left of the address bar and allow the microphone, then try again.");
+        return;
+      }
+
+      const mimeType = pickMimeType();
+      mediaRecorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
+      audioChunks = [];
+
+      mediaRecorder.ondataavailable = (e) => { if (e.data.size) audioChunks.push(e.data); };
+      mediaRecorder.onstop = () => {
+        stream.getTracks().forEach(track => track.stop());
+        const blob = new Blob(audioChunks, { type: mediaRecorder.mimeType || "audio/webm" });
+        transcribe(blob);
+      };
+
+      mediaRecorder.start();
+      isRecording = true;
+      micBtn.classList.add("recording");
+      micBtn.innerHTML = icon("i-stop");
+      micBtn.title = "Stop recording";
+      noticeText.textContent = "🎙 Recording… click ■ to stop, or ↑ to stop and send.";
+
+      const startedAt = Date.now();
+      const tick = () => {
+        const s = Math.floor((Date.now() - startedAt) / 1000);
+        statusText.textContent = `Recording ${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+        statusText.classList.add("busy");
+      };
+      tick();
+      recordTimer = setInterval(tick, 500);
     }
 
-    function stopDictation() {
-      isDictating = false;
-      if (speechRecognition) {
-        try { speechRecognition.stop(); } catch {}
-      }
+    function stopRecording() {
+      if (!isRecording) return;
+      isRecording = false;
+      clearInterval(recordTimer);
       micBtn.classList.remove("recording");
       micBtn.innerHTML = icon("i-mic");
       micBtn.title = "Speak your message";
-      noticeText.textContent = DEFAULT_NOTICE;
-      if (!isBusy) statusText.textContent = "Ready";
+      mediaRecorder.stop();
+    }
+
+    function resetVoiceStatus(message) {
+      statusText.textContent = "Ready";
+      statusText.classList.remove("busy");
+      noticeText.textContent = message || DEFAULT_NOTICE;
+    }
+
+    async function transcribe(blob) {
+      if (blob.size < 1000) {
+        sendAfterTranscribe = false;
+        resetVoiceStatus("That recording was too short — hold the mic a little longer.");
+        return;
+      }
+
+      isTranscribing = true;
+      statusText.textContent = "Writing down what you said...";
+      statusText.classList.add("busy");
+      noticeText.textContent = "✍️ SaliBot is turning your voice into text…";
+
+      const extension = blob.type.includes("ogg") ? "ogg" : blob.type.includes("mp4") ? "m4a" : "webm";
+      const form = new FormData();
+      form.append("file", blob, `voice.${extension}`);
+      form.append("model", modelSelect.value);
+
+      try {
+        const res = await fetch("/transcribe", { method: "POST", body: form });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Couldn't understand the recording.");
+
+        const before = messageInput.value.trim();
+        messageInput.value = (before ? before + " " : "") + data.text;
+        autoResize();
+        resetVoiceStatus();
+      } catch (e) {
+        sendAfterTranscribe = false;
+        resetVoiceStatus("⚠️ " + String(e.message).replace(/\*\*/g, ""));
+      } finally {
+        isTranscribing = false;
+        if (sendAfterTranscribe) {
+          sendAfterTranscribe = false;
+          sendMessage();
+        } else {
+          messageInput.focus();
+        }
+      }
     }
 
     // ---------- Sidebar ----------
@@ -1010,7 +1049,7 @@
 
     attachBtn.onclick = () => fileInput.click();
     fileInput.onchange = () => uploadFile(fileInput.files[0]);
-    micBtn.onclick = () => (isDictating ? stopDictation() : startDictation());
+    micBtn.onclick = () => (isRecording ? stopRecording() : startRecording());
     modelSelect.onchange = () => safeSet("selected_model", modelSelect.value);
 
     messageInput.addEventListener("input", autoResize);

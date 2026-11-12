@@ -14,6 +14,8 @@ import uvicorn
 from fastapi import FastAPI, File, Form, Request, UploadFile
 from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
 from fastapi.templating import Jinja2Templates
+from google import genai
+from google.genai import types as genai_types
 from langchain_core.messages import HumanMessage
 from pydantic import BaseModel
 
@@ -144,6 +146,44 @@ async def upload(file: UploadFile = File(...), thread_id: str = Form(...)):
     )
 
     return result
+
+
+@app.post("/transcribe")
+def transcribe(file: UploadFile = File(...), model: str | None = Form(None)):
+    """🎤 Turn a recorded voice message into text using Gemini."""
+    audio = file.file.read()
+
+    if not audio:
+        return JSONResponse(status_code=400, content={"error": "The recording was empty — please try again."})
+
+    if len(audio) > 20 * 1024 * 1024:
+        return JSONResponse(status_code=400, content={"error": "That recording is too long. Try a shorter message."})
+
+    mime_type = (file.content_type or "audio/webm").split(";")[0]
+    selected_model = normalize_model_name(model)
+
+    try:
+        client = genai.Client()
+        response = client.models.generate_content(
+            model=selected_model,
+            contents=[
+                genai_types.Part.from_bytes(data=audio, mime_type=mime_type),
+                "Transcribe this voice message exactly as spoken. "
+                "Reply with only the transcription text, nothing else. "
+                "If there is no speech, reply with nothing.",
+            ],
+        )
+        text = (response.text or "").strip()
+    except Exception as e:
+        return JSONResponse(status_code=400, content={"error": friendly_error(e, selected_model)})
+
+    if not text:
+        return JSONResponse(
+            status_code=400,
+            content={"error": "I couldn't hear any words — try speaking a bit closer to the mic."},
+        )
+
+    return {"text": text}
 
 
 @app.post("/chat/stream")
