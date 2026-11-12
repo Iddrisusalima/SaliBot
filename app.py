@@ -31,9 +31,13 @@ config = {
 
 
 for message_chunk, metadata in agent.stream(
-    {'messages': [HumanMessage(content="Generate a blog about Machine learning")]},
+    {'messages': [HumanMessage(content="Tell me todays news of AI")]},
     config= config,
     stream_mode= 'messages'):
+
+    # SaliBot fix: only print SaliBot's own reply, not the raw tool results
+    if metadata.get("langgraph_node") != "chatbot":
+        continue
 
     if message_chunk.content:
         print(chunk_text(message_chunk.content), end="", flush=True)
