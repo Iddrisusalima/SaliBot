@@ -15,6 +15,10 @@ My plan for growing SaliBot from a course project into a production app.
 - [ ] Follow the rest of the video
 - [ ] **Deploy to AWS** → get a live link for my presentation
 - [ ] Add "You were created by Salima Iddrisu" to the system prompt
+- [ ] **LangSmith walkthrough**: explain tracing and monitoring (traces, latency,
+      error rate, LLM calls, cost & tokens, tools)
+- [ ] LangSmith warns of a **deprecated API endpoint** (stops working 31 Jan 2027):
+      update the `langsmith` package before then
 
 ## Stage 2 — Make it safe for other people (the real "production" step)
 - [ ] **Login** (e.g. "Sign in with Google")
