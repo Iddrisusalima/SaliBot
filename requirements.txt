@@ -18,3 +18,7 @@ docx2txt==0.9
 langchain-tavily==0.2.18
 tavily-python==0.7.24
 sqlalchemy==2.0.50
+
+# SaliBot upgrade: Excel and PowerPoint uploads
+openpyxl==3.1.5
+python-pptx==1.0.2

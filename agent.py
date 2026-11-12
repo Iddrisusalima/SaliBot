@@ -19,15 +19,15 @@ from langgraph.checkpoint.sqlite import SqliteSaver
 Path("data").mkdir(exist_ok=True)
 
 
-# Update default and allowed models to use Gemini 2.5
-DEFAULT_MODEL = os.getenv("GOOGLE_MODEL", "gemini-2.5-flash")
+# SaliBot: Gemini 2.5 models are closed to new Google accounts,
+# so SaliBot uses the newer models this API key can access.
+DEFAULT_MODEL = os.getenv("GOOGLE_MODEL", "gemini-3.5-flash")
 
 ALLOWED_MODELS = {
-    "gemini-2.5-flash",
-    "gemini-2.5-pro",
-    "gemini-2.5-flash-lite",  # Included the lite version if needed
-    "gemini-1.5-flash",       # Kept for fallback compatibility
-    "gemini-1.5-pro"
+    "gemini-3.5-flash",       # Default: fast and smart
+    "gemini-3.5-flash-lite",  # Fastest and cheapest
+    "gemini-3.7-flash",       # Newer (may be busy at peak times)
+    "gemini-3.8-flash"        # Newest (may be busy at peak times)
 }
 
 
