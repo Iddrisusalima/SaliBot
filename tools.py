@@ -2,6 +2,7 @@ import math
 from dotenv import load_dotenv
 from langchain_core.tools import tool
 from langchain_tavily import TavilySearch
+from database import save_memory, search_memory
 
 
 load_dotenv()
@@ -45,3 +46,28 @@ def calculator(expression: str) -> str:
 
     except Exception as e:
         return f"Calculation error: {str(e)}"
+
+
+@tool
+def remember_this(memory: str) -> str:
+    """
+    Save an important user preference or fact into long-term memory.
+    Use this when the user asks you to remember something.
+    """
+
+    return save_memory(
+        thread_id=CURRENT_THREAD_ID,
+        memory=memory
+    )
+
+
+@tool
+def recall_memory(query: str) -> str:
+    """
+    Recall saved long-term memories about the user or this conversation.
+    """
+
+    return search_memory(
+        thread_id=CURRENT_THREAD_ID,
+        query=query
+    )
