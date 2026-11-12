@@ -5,8 +5,16 @@ Run it with:   python app.py
 Then open:     http://127.0.0.1:8000
 """
 
-import json
+from dotenv import load_dotenv
 import os
+import certifi
+
+load_dotenv()
+
+os.environ["SSL_CERT_FILE"] = certifi.where()
+os.environ["REQUESTS_CA_BUNDLE"] = certifi.where()
+
+import json
 import sys
 from pathlib import Path
 
