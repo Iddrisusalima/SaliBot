@@ -452,7 +452,16 @@
       justify-content: center;
       padding-bottom: 12vh;
     }
-    .main.empty .hero { display: block; }
+    .main.empty .hero { display: block; margin-bottom: 10px; }
+
+    .hero-sub {
+      display: none;
+      text-align: center;
+      color: var(--muted);
+      font-size: 15px;
+      margin: 0 0 24px;
+    }
+    .main.empty .hero-sub { display: block; }
     .main.empty .suggestions { display: grid; width: 100%; }
     .main.empty .notice { display: none; }
     .main.empty .composer { width: 100%; }
@@ -548,6 +557,7 @@
 
     <div class="composer-wrap">
       <h1 class="hero">What are we exploring today, <span>Salima</span>?</h1>
+      <p class="hero-sub">Ask questions, upload documents, use tools, search the web, and chat with memory.</p>
 
       <div class="composer">
         <button class="round-btn" id="attachBtn" title="Upload a document or picture"><svg><use href="#i-plus"/></svg></button>
