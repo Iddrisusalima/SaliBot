@@ -116,3 +116,20 @@ def build_agent(model_name: str):
     checkpointer = SqliteSaver(conn)
 
     return workflow.compile(checkpointer=checkpointer)
+
+
+_AGENT_CACHE = {}
+
+
+def get_agent(model_name: str | None = None):
+    """
+    Return cached LangGraph agent for selected model.
+    If not created yet, create it once and reuse it.
+    """
+
+    selected_model = normalize_model_name(model_name)
+
+    if selected_model not in _AGENT_CACHE:
+        _AGENT_CACHE[selected_model] = build_agent(selected_model)
+
+    return _AGENT_CACHE[selected_model]
