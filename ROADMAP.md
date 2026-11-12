@@ -27,7 +27,7 @@ My plan for growing SaliBot from a course project into a production app.
 - [x] **Accounts**: create account / log in / log out (email + password)
 - [ ] "Sign in with Google" (optional extra)
 - [x] **Separate chats per user**: each user only sees and opens their own chats
-- [ ] Replace the shared `CURRENT_THREAD_ID` in tools.py with per-request info
+- [x] Replace the shared `CURRENT_THREAD_ID` in tools.py with per-request info
       (needed before many people chat at the *same moment*, or tools could
       read the wrong chat's memory/documents)
 - [ ] **Paid Gemini plan** with a monthly spending limit
@@ -39,11 +39,11 @@ My plan for growing SaliBot from a course project into a production app.
       (pinned chats stay at the top of Recents)
       (needs new rename/delete routes in app.py + database.py, and clearing
       that chat's memory, documents and LangGraph checkpoints on delete)
-- [ ] My 4 extra tools:
-  - [ ] 🔬 `search_research_papers` (arXiv)
-  - [ ] 🎬 `youtube_summary`
-  - [ ] 🕒 `get_current_datetime`
-  - [ ] 🗑️ `forget_memory`
+- [x] My 4 extra tools:
+  - [x] 🔬 `search_research_papers` (arXiv)
+  - [x] 🎬 `youtube_summary`
+  - [x] 🕒 `get_current_datetime`
+  - [x] 🗑️ `forget_memory`
 
 ## Stage 3 — Rebuild the frontend in Next.js (optional, for growth)
 - [ ] Learn the basics of React + Next.js

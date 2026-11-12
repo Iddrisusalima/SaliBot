@@ -26,6 +26,10 @@
 | 🖼️ | **Reads pictures** | Gemini vision describes images and copies any text in them (e.g. photos of whiteboard notes) |
 | 💾 | **Long-term memory** | "Remember that I teach robotics" → saved and recalled later |
 | 🧮 | **Calculator** | A safe, sandboxed maths tool |
+| 🔬 | **Research papers** | Searches arXiv for papers on any topic (newest first when you ask for recent ones) |
+| 🎬 | **YouTube summaries** | Paste a YouTube link; Gemini watches the video and summarises it |
+| 🕒 | **Knows today's date** | A date/time tool, so "this week" and "today" questions are answered correctly |
+| 🗑️ | **Forget on request** | "Forget what I told you about…" deletes the saved memory |
 | ⚡ | **Streaming replies** | Answers appear word by word, with live tool status ("Searching the web…") |
 | 🎙️ | **Voice input** | Record a message; Gemini transcribes it |
 | 🔐 | **User accounts** | Create an account / log in; every user only sees their own chats |
@@ -74,7 +78,7 @@
 SaliBot/
 ├── app.py              # FastAPI server: pages, accounts, chat streaming, uploads
 ├── agent.py            # LangGraph agent, system prompt, model selection
-├── tools.py            # Agent tools: web search, calculator, documents, memory
+├── tools.py            # 9 agent tools: web, calculator, documents, memory, date, arXiv, YouTube
 ├── rag.py              # Document reading, chunking, embeddings, ChromaDB search
 ├── database.py         # SQLite models: users, sessions, chats, messages, memory
 ├── templates/
@@ -169,7 +173,6 @@ The same `Dockerfile` runs on a Docker Space. Add the API keys as **Space secret
 
 ## 🗺️ Roadmap
 
-- [ ] More tools: research-paper search (arXiv), YouTube summaries, current date/time, forget memory
 - [ ] PostgreSQL for multi-user production hosting
 - [ ] Next.js frontend
 
@@ -177,7 +180,7 @@ The same `Dockerfile` runs on a Docker Space. Add the API keys as **Space secret
 
 ## 🙏 Acknowledgements
 
-Built while following **DSwithBappy's** course *"Build Your Own ChatGPT Agent with LLMs, LangGraph, FastAPI, LangSmith, ChromaDB, SQLAlchemy & AWS"*, then extended with accounts, a chat menu, extra file types, image reading, voice transcription and a redesigned interface.
+Built while following **DSwithBappy's** course *"Build Your Own ChatGPT Agent with LLMs, LangGraph, FastAPI, LangSmith, ChromaDB, SQLAlchemy & AWS"*, then extended with accounts, a chat menu, 4 extra tools, extra file types, image reading, voice transcription and a redesigned interface.
 
 ## 👩🏾‍💻 Author
 

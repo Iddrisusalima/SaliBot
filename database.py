@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 import hashlib
 import hmac
+import re
 import secrets
 
 from sqlalchemy import create_engine, Column, Integer, String, Text, DateTime, Boolean, inspect, text
@@ -381,6 +382,42 @@ def save_memory(thread_id: str, memory: str):
         db.commit()
 
         return "Memory saved successfully."
+
+    finally:
+        db.close()
+
+
+FORGET_ALL_WORDS = {"everything", "all", "all memories", "every memory", "*"}
+SKIP_WORDS = {"the", "and", "that", "this", "about", "user", "user's", "my", "me", "is", "are", "was", "what", "for", "with"}
+
+
+def delete_memories(thread_id: str, query: str):
+    """SaliBot upgrade: delete memories that mention the given words (or all)."""
+    db = SessionLocal()
+
+    try:
+        memories = db.query(LongTermMemory).filter(LongTermMemory.thread_id == thread_id).all()
+
+        if not memories:
+            return "There are no saved memories to forget."
+
+        query = (query or "").strip().lower()
+
+        if query in FORGET_ALL_WORDS:
+            matches = memories
+        else:
+            words = [w for w in re.findall(r"[\w']+", query) if len(w) > 2 and w not in SKIP_WORDS]
+            matches = [m for m in memories if words and any(w in m.memory.lower() for w in words)]
+
+        if not matches:
+            return f"No saved memory matched '{query}'. Nothing was deleted."
+
+        forgotten = [m.memory for m in matches]
+        for m in matches:
+            db.delete(m)
+        db.commit()
+
+        return "Forgot " + str(len(forgotten)) + " memory(ies):\n" + "\n".join(f"- {m}" for m in forgotten)
 
     finally:
         db.close()
