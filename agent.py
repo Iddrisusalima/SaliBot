@@ -22,11 +22,11 @@ Path("data").mkdir(exist_ok=True)
 
 # SaliBot: Gemini 2.5 models are closed to new Google accounts,
 # so SaliBot uses the newer models this API key can access.
-DEFAULT_MODEL = os.getenv("GOOGLE_MODEL", "gemini-3.5-flash")
+DEFAULT_MODEL = os.getenv("GOOGLE_MODEL", "gemini-3.5-flash-lite")
 
 ALLOWED_MODELS = {
-    "gemini-3.5-flash",       # Default: fast and smart
-    "gemini-3.5-flash-lite",  # Fastest and cheapest
+    "gemini-3.5-flash",       # Smarter, but only ~20 free requests a day
+    "gemini-3.5-flash-lite",  # Default: fastest, bigger free allowance
     "gemini-3.7-flash",       # Newer (may be busy at peak times)
     "gemini-3.8-flash"        # Newest (may be busy at peak times)
 }

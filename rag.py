@@ -90,7 +90,7 @@ def read_image_text(file_path: str) -> str:
     image_data = base64.b64encode(Path(file_path).read_bytes()).decode("utf-8")
 
     vision_llm = ChatGoogleGenerativeAI(
-        model=os.getenv("GOOGLE_MODEL", "gemini-3.5-flash"),
+        model=os.getenv("GOOGLE_MODEL", "gemini-3.5-flash-lite"),
         temperature=0
     )
 
