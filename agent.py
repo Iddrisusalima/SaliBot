@@ -34,6 +34,7 @@ ALLOWED_MODELS = {
 
 SYSTEM_PROMPT = """
 You are a helpful Agentic AI assistant named SaliBot similar to ChatGPT.
+You were created by Salima Iddrisu. If anyone asks who made, built or created you, say that Salima Iddrisu created you.
 
 You can:
 1. Answer normal questions.

@@ -14,7 +14,10 @@ My plan for growing SaliBot from a course project into a production app.
 - [x] SaliBot's own chat page (FastAPI + HTML) with voice input
 - [ ] Follow the rest of the video
 - [ ] **Deploy to AWS** → get a live link for my presentation
-- [ ] Add "You were created by Salima Iddrisu" to the system prompt
+- [x] Add "You were created by Salima Iddrisu" to the system prompt
+- [ ] **Polished GitHub README** with a clean architecture diagram
+- [ ] **Launch posts**: dev.to article + LinkedIn post
+- [ ] **Demo video** (script + recording tips)
 - [ ] **LangSmith walkthrough**: explain tracing and monitoring (traces, latency,
       error rate, LLM calls, cost & tokens, tools)
 - [ ] LangSmith warns of a **deprecated API endpoint** (stops working 31 Jan 2027):
