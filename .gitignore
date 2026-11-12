@@ -238,3 +238,6 @@ chroma_db/
 
 # My private presentation notes
 presentation-notes.md
+
+# Claude Code local settings
+.claude/
