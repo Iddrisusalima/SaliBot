@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 from langchain_core.tools import tool
 from langchain_tavily import TavilySearch
 from database import save_memory, search_memory
+from rag import retrieve_from_rag
 
 
 load_dotenv()
@@ -49,6 +50,20 @@ def calculator(expression: str) -> str:
 
 
 @tool
+def search_uploaded_documents(query: str) -> str:
+    """
+    Search uploaded documents for relevant information.
+    Use this when the user asks about uploaded PDFs, DOCX, TXT, notes, files, or documents.
+    Also use it for uploaded Excel sheets, PowerPoint slides, and images.
+    """
+
+    return retrieve_from_rag(
+        query=query,
+        thread_id=CURRENT_THREAD_ID
+    )
+
+
+@tool
 def remember_this(memory: str) -> str:
     """
     Save an important user preference or fact into long-term memory.
@@ -71,3 +86,13 @@ def recall_memory(query: str) -> str:
         thread_id=CURRENT_THREAD_ID,
         query=query
     )
+
+
+# Reconstructed (not shown in video yet): the list of tools SaliBot can use
+tools = [
+    web_search,
+    calculator,
+    search_uploaded_documents,
+    remember_this,
+    recall_memory
+]
