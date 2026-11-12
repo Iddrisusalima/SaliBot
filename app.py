@@ -1,0 +1,39 @@
+import sys
+
+from agent import get_agent
+from langchain_core.messages import SystemMessage, HumanMessage
+
+# SaliBot: show emojis and special characters correctly in the Windows terminal
+sys.stdout.reconfigure(encoding="utf-8")
+
+agent = get_agent("gemini-3.5-flash")
+
+
+def chunk_text(content) -> str:
+    """
+    SaliBot fix: newer Gemini models send text as a list of "parts"
+    like [{'type': 'text', 'text': 'Hello'}]. This pulls out just the text.
+    """
+    if isinstance(content, str):
+        return content
+
+    return "".join(
+        part.get("text", "") if isinstance(part, dict) else str(part)
+        for part in content
+    )
+
+
+config = {
+    "configurable": {
+        "thread_id": "test_thread_id",
+    }
+}
+
+
+for message_chunk, metadata in agent.stream(
+    {'messages': [HumanMessage(content="Generate a blog about Machine learning")]},
+    config= config,
+    stream_mode= 'messages'):
+
+    if message_chunk.content:
+        print(chunk_text(message_chunk.content), end="", flush=True)
