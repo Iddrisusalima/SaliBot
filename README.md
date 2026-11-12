@@ -37,62 +37,9 @@
 
 ## 🏗️ Architecture
 
-```mermaid
-flowchart LR
-    U(["👤 User<br/>(browser)"])
+![SaliBot architecture](docs/architecture.png)
 
-    subgraph FE["Frontend · templates/index.html"]
-        UI["Chat UI<br/>accounts · chat menu · voice · uploads"]
-    end
-
-    subgraph BE["Backend · FastAPI (app.py)"]
-        AUTH["/auth/*<br/>sign up · log in"]
-        CHAT["/chat/stream<br/>(Server-Sent Events)"]
-        UP["/upload"]
-        CONV["/conversations · /history"]
-    end
-
-    subgraph AG["LangGraph agent (agent.py)"]
-        direction TB
-        S0(("Start")) --> BOT["chatbot node<br/>Gemini 3.5"]
-        BOT -- "needs a tool" --> TOOLS["tools node"]
-        TOOLS --> BOT
-        BOT -- "final answer" --> S1(("Reply"))
-    end
-
-    subgraph TL["Tools (tools.py)"]
-        T1["🌐 tavily_search"]
-        T2["🧮 calculator"]
-        T3["📄 search_uploaded_documents"]
-        T4["💾 remember_this · recall_memory"]
-    end
-
-    subgraph DATA["Storage"]
-        SQL[("SQLite<br/>users · chats · memory")]
-        CK[("SQLite<br/>LangGraph checkpoints")]
-        VEC[("ChromaDB<br/>document embeddings")]
-    end
-
-    subgraph EXT["External services"]
-        GEM["Google Gemini<br/>chat · embeddings · vision"]
-        TAV["Tavily<br/>web search"]
-        LS["LangSmith<br/>tracing"]
-    end
-
-    U <--> UI
-    UI <--> AUTH & CHAT & UP & CONV
-    CHAT --> AG
-    TOOLS --> TL
-    AUTH & CONV --> SQL
-    AG --> CK
-    T4 --> SQL
-    T3 --> VEC
-    UP -- "read → chunk → embed" --> VEC
-    BOT --> GEM
-    VEC -.-> GEM
-    T1 --> TAV
-    AG -.-> LS
-```
+<sub>Editable source: [`docs/architecture.drawio`](docs/architecture.drawio) (open with [draw.io](https://app.diagrams.net))</sub>
 
 **How a message flows**
 
