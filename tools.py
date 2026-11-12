@@ -88,11 +88,10 @@ def recall_memory(query: str) -> str:
     )
 
 
-# Reconstructed (not shown in video yet): the list of tools SaliBot can use
 tools = [
-    web_search,
     calculator,
     search_uploaded_documents,
     remember_this,
-    recall_memory
+    recall_memory,
+    web_search
 ]
