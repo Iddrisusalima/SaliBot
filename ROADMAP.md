@@ -7,32 +7,35 @@ My plan for growing SaliBot from a course project into a production app.
 
 ---
 
-## Stage 1 — Finish the course ✅ (in progress)
+## Stage 1 — Finish the course ✅
 - [x] LangGraph agent with 5 tools (web search, calculator, documents, remember, recall)
 - [x] RAG with extra file types (Excel, PowerPoint, pictures)
 - [x] Upgraded to Gemini 3.5 (2.5 is closed to new accounts)
 - [x] SaliBot's own chat page (FastAPI + HTML) with voice input
-- [ ] Follow the rest of the video
-- [ ] **Deploy to AWS** → get a live link for my presentation
+- [x] Follow the rest of the video (Dockerfile, .dockerignore, cicd.yaml ready)
+- [ ] **Deploy** → live link (Hugging Face Spaces, free; AWS later with a funded card)
 - [x] Add "You were created by Salima Iddrisu" to the system prompt
-- [ ] **Polished GitHub README** with a clean architecture diagram
-- [ ] **Launch posts**: dev.to article + LinkedIn post
-- [ ] **Demo video** (script + recording tips)
+- [x] **Polished GitHub README** with a clean draw.io architecture diagram
+- [x] **Launch drafts**: dev.to article + LinkedIn post (in `launch/`, add live link)
+- [ ] **Demo video**: script ready in `launch/`; record it after deploying
 - [ ] **LangSmith walkthrough**: explain tracing and monitoring (traces, latency,
       error rate, LLM calls, cost & tokens, tools)
 - [ ] LangSmith warns of a **deprecated API endpoint** (stops working 31 Jan 2027):
       update the `langsmith` package before then
 
 ## Stage 2 — Make it safe for other people (the real "production" step)
-- [ ] **Login** (e.g. "Sign in with Google")
-- [ ] **Separate data per user** — their own chats, memory and documents
-      (replace the shared `CURRENT_THREAD_ID` with per-request user/thread info)
+- [x] **Accounts**: create account / log in / log out (email + password)
+- [ ] "Sign in with Google" (optional extra)
+- [x] **Separate chats per user**: each user only sees and opens their own chats
+- [ ] Replace the shared `CURRENT_THREAD_ID` in tools.py with per-request info
+      (needed before many people chat at the *same moment*, or tools could
+      read the wrong chat's memory/documents)
 - [ ] **Paid Gemini plan** with a monthly spending limit
       (free plan ≈ 20 requests/day on gemini-3.5-flash)
 - [ ] **PostgreSQL** instead of SQLite for the server database
 - [ ] Upload size limits + rate limits (so one person can't overload it)
 - [ ] Error monitoring (LangSmith traces + server logs)
-- [ ] **Chat menu (⋯) in the sidebar**: rename, delete and **pin** a chat
+- [x] **Chat menu (⋯) in the sidebar**: rename, delete and **pin** a chat
       (pinned chats stay at the top of Recents)
       (needs new rename/delete routes in app.py + database.py, and clearing
       that chat's memory, documents and LangGraph checkpoints on delete)

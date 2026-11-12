@@ -241,3 +241,6 @@ presentation-notes.md
 
 # Claude Code local settings
 .claude/
+
+# My launch drafts (posts, demo script)
+launch/
