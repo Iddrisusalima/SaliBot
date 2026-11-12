@@ -357,12 +357,18 @@ async def chat_stream(request: Request):
             yield sse_data({"done": True})
 
         except Exception as e:
-            # SaliBot extra: short, friendly message instead of Google's long error
+            # SaliBot extra: friendly_error(...) gives a short message instead of Google's long str(e)
             yield sse_data({"error": friendly_error(e, normalize_model_name(selected_model))})
+            yield sse_data({"done": True})
 
     return StreamingResponse(
         event_generator(),
-        media_type="text/event-stream"
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no"
+        }
     )
 
 
