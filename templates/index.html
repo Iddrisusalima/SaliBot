@@ -201,15 +201,19 @@
     .model-picker b { font-size: 16px; }
 
     #modelSelect {
-      background: transparent;
+      align-self: center;
+      background: var(--panel);
       color: var(--muted);
-      border: none;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 7px 10px;
       font: inherit;
-      font-size: 14px;
+      font-size: 13px;
       outline: none;
       cursor: pointer;
-      max-width: 200px;
+      max-width: 190px;
     }
+    #modelSelect:hover { color: var(--text); border-color: var(--violet); }
     #modelSelect option { background: var(--panel); color: var(--text); }
 
     .status {
@@ -481,7 +485,7 @@
       .topbar { padding: 8px 10px; }
       .message.user .bubble { max-width: 88%; }
       .suggestion small { display: none; }
-      #modelSelect { max-width: 150px; }
+      #modelSelect { max-width: 118px; padding: 6px 8px; font-size: 12px; }
     }
   </style>
 </head>
@@ -538,7 +542,6 @@
       <button class="icon-only open-sidebar" id="openSidebarBtn" title="Open sidebar"><svg><use href="#i-panel"/></svg></button>
       <div class="model-picker">
         <b>SaliBot</b>
-        <select id="modelSelect" title="Choose a Gemini model"></select>
       </div>
       <div class="status" id="status">Ready</div>
     </header>
@@ -555,6 +558,7 @@
         <input type="file" id="fileInput" hidden
                accept=".pdf,.docx,.txt,.md,.py,.csv,.xlsx,.pptx,.png,.jpg,.jpeg,.webp">
         <textarea id="messageInput" rows="1" placeholder="Ask SaliBot anything..."></textarea>
+        <select id="modelSelect" title="Choose a Gemini model"></select>
         <button class="round-btn" id="micBtn" title="Speak your message"><svg><use href="#i-mic"/></svg></button>
         <button class="round-btn" id="sendBtn" title="Send"><svg><use href="#i-send"/></svg></button>
       </div>
