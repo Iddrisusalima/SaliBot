@@ -767,7 +767,8 @@
       chatInner.innerHTML = "";
       try {
         const res = await fetch(`/history/${encodeURIComponent(threadId)}`);
-        const messages = await res.json();
+        const data = await res.json();
+        const messages = data.messages || [];
 
         if (!messages.length) { showWelcome(); return; }
 

@@ -140,11 +140,18 @@ async def conversations():
 
 
 @app.get("/history/{thread_id}")
-def history(thread_id: str):
-    return [
-        {"role": m.role, "content": m.content}
-        for m in get_chat_history(thread_id)
-    ]
+async def history(thread_id: str):
+    messages = get_chat_history(thread_id)
+
+    return {
+        "messages": [
+            {
+                "role": msg.role,
+                "content": msg.content
+            }
+            for msg in messages
+        ]
+    }
 
 
 @app.post("/upload")
