@@ -592,11 +592,11 @@
     const isPhone = () => window.matchMedia("(max-width: 760px)").matches;
 
     const TOOL_LABELS = {
-      tavily_search: "🌐 Searching the web",
-      calculator: "🧮 Calculating",
-      search_uploaded_documents: "📄 Reading your documents",
-      remember_this: "💾 Saving to memory",
-      recall_memory: "🔍 Checking memory"
+      tavily_search: "Searching the web",
+      calculator: "Calculating",
+      search_uploaded_documents: "Reading your documents",
+      remember_this: "Saving to memory",
+      recall_memory: "Checking memory"
     };
 
     const SUGGESTIONS = [
@@ -871,7 +871,7 @@
               reply += event.token;
               queueRender();
             } else if (event.tool) {
-              const label = TOOL_LABELS[event.tool] || `🛠️ Using ${event.tool}`;
+              const label = TOOL_LABELS[event.tool] || `Using ${event.tool}`;
               const chip = document.createElement("span");
               chip.className = "tool-chip";
               chip.textContent = label;
