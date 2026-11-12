@@ -43,22 +43,26 @@ from tools import set_current_thread_id
 
 # --- SaliBot extras (needed for SaliBot's own page, model list and voice input) ---
 import sys
-from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 from google import genai
 from google.genai import types as genai_types
 from agent import ALLOWED_MODELS, DEFAULT_MODEL, normalize_model_name
 
-# Show emojis and special characters correctly in the Windows terminal
+# SaliBot: show emojis and special characters correctly in the Windows terminal
 sys.stdout.reconfigure(encoding="utf-8")
+
+
+app = FastAPI()
+
+templates = Jinja2Templates(directory="templates")
+
+Path("uploads").mkdir(exist_ok=True)
+Path("data").mkdir(exist_ok=True)
+
 
 init_db()
 
-app = FastAPI(title="SaliBot")
-templates = Jinja2Templates(directory="templates")
-
 UPLOAD_DIR = Path("uploads")
-UPLOAD_DIR.mkdir(exist_ok=True)
 
 # Course types + SaliBot upgrade types (Excel, PowerPoint, images)
 ALLOWED_UPLOADS = {
@@ -104,9 +108,13 @@ def friendly_error(error: Exception, model: str) -> str:
     return f"Sorry, something went wrong: {text[:300]}"
 
 
-@app.get("/", response_class=HTMLResponse)
-def home(request: Request):
-    return templates.TemplateResponse(request, "index.html")
+@app.get("/")
+async def home(request: Request):
+    return templates.TemplateResponse(
+        request=request,
+        name="index.html",
+        context={}
+    )
 
 
 @app.get("/models")
