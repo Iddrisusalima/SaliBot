@@ -15,28 +15,39 @@ os.environ["SSL_CERT_FILE"] = certifi.where()
 os.environ["REQUESTS_CA_BUNDLE"] = certifi.where()
 
 import json
-import sys
+import uuid
 from pathlib import Path
 
 import uvicorn
-from fastapi import FastAPI, File, Form, Request, UploadFile
-from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
+from fastapi import FastAPI, Request, UploadFile, File, Form
+from fastapi.responses import StreamingResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
-from google import genai
-from google.genai import types as genai_types
-from langchain_core.messages import HumanMessage
-from pydantic import BaseModel
 
-from agent import ALLOWED_MODELS, DEFAULT_MODEL, get_agent, normalize_model_name
-from database import (
-    create_or_update_conversation,
-    get_chat_history,
-    init_db,
-    list_conversations,
-    save_chat_message,
+from langchain_core.messages import (
+    HumanMessage,
+    AIMessage,
+    AIMessageChunk,
+    ToolMessage
 )
+
+from agent import get_agent
+from database import (
+    init_db,
+    save_chat_message,
+    get_chat_history,
+    create_or_update_conversation,
+    list_conversations)
+
 from rag import add_document_to_rag
 from tools import set_current_thread_id
+
+# --- SaliBot extras (needed for SaliBot's own page, model list and voice input) ---
+import sys
+from fastapi.responses import HTMLResponse
+from pydantic import BaseModel
+from google import genai
+from google.genai import types as genai_types
+from agent import ALLOWED_MODELS, DEFAULT_MODEL, normalize_model_name
 
 # Show emojis and special characters correctly in the Windows terminal
 sys.stdout.reconfigure(encoding="utf-8")
