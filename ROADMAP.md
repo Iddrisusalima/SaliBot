@@ -25,6 +25,9 @@ My plan for growing SaliBot from a course project into a production app.
 - [ ] **PostgreSQL** instead of SQLite for the server database
 - [ ] Upload size limits + rate limits (so one person can't overload it)
 - [ ] Error monitoring (LangSmith traces + server logs)
+- [ ] **Chat menu (⋯) in the sidebar**: rename a chat, delete a chat
+      (needs new rename/delete routes in app.py + database.py, and clearing
+      that chat's memory, documents and LangGraph checkpoints on delete)
 - [ ] My 4 extra tools:
   - [ ] 🔬 `search_research_papers` (arXiv)
   - [ ] 🎬 `youtube_summary`
