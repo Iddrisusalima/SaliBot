@@ -2,11 +2,14 @@ import sys
 
 from agent import get_agent
 from langchain_core.messages import SystemMessage, HumanMessage
+from database import init_db
 
 # SaliBot: show emojis and special characters correctly in the Windows terminal
 sys.stdout.reconfigure(encoding="utf-8")
 
-agent = get_agent("gemini-3.5-flash")
+init_db()
+
+agent =get_agent("gemini-3.5-flash")
 
 
 def chunk_text(content) -> str:
@@ -31,7 +34,7 @@ config = {
 
 
 for message_chunk, metadata in agent.stream(
-    {'messages': [HumanMessage(content="Tell me todays news of AI")]},
+    {'messages': [HumanMessage(content="My name is Salima. remember that")]},
     config= config,
     stream_mode= 'messages'):
 
