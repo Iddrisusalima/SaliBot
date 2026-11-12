@@ -263,5 +263,12 @@ def chat_stream(req: ChatRequest):
 
 
 if __name__ == "__main__":
-    # Uses port 8000 unless a PORT setting says otherwise
-    uvicorn.run(app, host="127.0.0.1", port=int(os.getenv("PORT", "8000")))
+    host = os.getenv("APP_HOST", "127.0.0.1")
+    port = int(os.getenv("APP_PORT", "8000"))
+
+    uvicorn.run(
+        "app:app",   # SaliBot: our file is app.py, so it's "app:app" (the video says "main:app")
+        host=host,
+        port=port,
+        reload=True
+    )
