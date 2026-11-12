@@ -123,15 +123,20 @@ def models():
 
 
 @app.get("/conversations")
-def conversations():
-    return [
-        {
-            "thread_id": c.thread_id,
-            "title": c.title,
-            "updated_at": c.updated_at.isoformat() if c.updated_at else None,
-        }
-        for c in list_conversations()
-    ]
+async def conversations():
+    items = list_conversations()
+
+    return {
+        "conversations": [
+            {
+                "thread_id": item.thread_id,
+                "title": item.title,
+                "created_at": item.created_at.isoformat(),
+                "updated_at": item.updated_at.isoformat()
+            }
+            for item in items
+        ]
+    }
 
 
 @app.get("/history/{thread_id}")
