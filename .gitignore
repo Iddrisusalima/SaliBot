@@ -235,3 +235,6 @@ chroma_db/
 
 # VS Code personal settings (interpreter path etc.)
 .vscode/
+
+# My private presentation notes
+presentation-notes.md
