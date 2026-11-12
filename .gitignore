@@ -232,3 +232,6 @@ uploads/
 chroma_db/
 *.sqlite
 *.db
+
+# VS Code personal settings (interpreter path etc.)
+.vscode/
