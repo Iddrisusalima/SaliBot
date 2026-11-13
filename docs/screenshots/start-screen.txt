@@ -1,0 +1,7 @@
+# Start screen after logging in (demo account)
+
+Greeting: What are we exploring today, <your name>?
+Sidebar: New chat, Upload a document, Recents (each chat has a menu: Pin, Rename, Delete)
+Message box: + (upload), text, model picker, microphone, send
+Suggestions: What's new in robotics today? / Summarise a document I upload /
+             Remember that I teach robotics / What is 125 * 48 / 6?

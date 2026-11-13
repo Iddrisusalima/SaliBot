@@ -1,0 +1,23 @@
+# Five files of different types uploaded to one chat, then searched by meaning
+
+$ upload 5 files to one chat
+
+learning-log.md               8,325 chars   12 chunks
+   "# Learning Log: SaliBot Every problem I hit while building SaliBot, in the ord..."
+robotics-schedule.xlsx          185 chars    1 chunks
+   "Sheet: Term 1 Week | Topic | Kit 1 | What is a robot? | None 2 | Motors and wh..."
+robotics-lesson.pptx            224 chars    1 chunks
+   "Slide 1: Intro to Robotics Sense, think, act: the loop every robot runs. Slide..."
+sensor-readings.csv              71 chars    1 chunks
+   "reading,sensor,value_cm 1,ultrasonic,42 2,ultrasonic,17 3,ultrasonic,9..."
+salibot-architecture.png      3,641 chars    6 chunks
+   "### Description of the Image The image is a system architecture diagram for "S..."
+
+5 files, 21 chunks, embedded with gemini-embedding-001, tagged with this chat's id
+
+Q: What does week 3 of the robotics course cover, and which kit is needed?
+   search_uploaded_documents returned:
+   [Source 1: robotics-schedule.xlsx] Sheet: Term 1 Week | Topic | Kit 1 | What is a robot? | None 2 | ...
+   [Source 2: robotics-lesson.pptx] Slide 1: Intro to Robotics Sense, think, act: the loop every robot runs. Sl...
+   [Source 3: learning-log.md] --- ## 3. Tools and files ### More file types The course reads PDF, Word, TXT, M...
+   [Source 4: learning-log.md] **Lesson:** test the failure path with the failure actually happening. My first ...

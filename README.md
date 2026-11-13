@@ -20,6 +20,8 @@ input, accounts, a chat menu, and automatic fallback when a model is busy.
 ## Table of contents
 
 - [Demo](#demo)
+  - [What happens inside the agent](#what-happens-inside-the-agent)
+  - [Chatting with an uploaded document](#chatting-with-an-uploaded-document)
 - [What SaliBot can do](#what-salibot-can-do)
 - [Architecture](#architecture)
   - [Components](#components)
@@ -29,6 +31,10 @@ input, accounts, a chat menu, and automatic fallback when a model is busy.
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
 - [Usage](#usage)
+  - [Inspecting each stage](#inspecting-each-stage)
+- [Key concepts](#key-concepts)
+- [File types, and how each one is read](#file-types-and-how-each-one-is-read)
+- [Settings, and why](#settings-and-why)
 - [Deployment](#deployment)
 - [Verification](#verification)
 - [What I Learned](#what-i-learned)
@@ -47,13 +53,23 @@ Asked for recent papers, the agent chose two tools on its own: the arXiv search
 (newest first, because the question said "recent") and a web search to fill in
 context. Every paper comes with a link that can be opened and checked.
 
+### What happens inside the agent
+
+![Each step of the agent: the tool it calls, the arguments, the result, and the answer](docs/screenshots/agent-steps.png)
+
+This is the same agent run step by step from the terminal. On the second
+question it called **two tools at once**, `recall_memory` and `calculator`,
+then wrote one answer from both results. Nothing told it which tools to use;
+it decided from the question and the tool descriptions. The memory it recalled
+was saved by the first question through `remember_this`.
+
 ### Chatting with an uploaded document
 
 ![A question answered from an uploaded Markdown file](docs/screenshots/chat-with-documents.png)
 
 The project's own roadmap was uploaded as a Markdown file, split into 6 chunks
-and embedded. The answer comes only from those chunks, and they belong to this
-chat alone: another chat, or another user, cannot search them.
+and embedded. The agent searched those chunks and answered from them. They
+belong to this chat alone: another chat, or another user, cannot search them.
 
 ### Start screen and accounts
 
@@ -183,7 +199,8 @@ notes/
 docs/
   architecture.drawio   Editable source for the diagram above
   architecture.png
-  screenshots/          The images in this README
+  screenshots/          The images in this README, each with the
+                        transcript it was made from (.txt)
 .github/
   workflows/ci.yml      CI: byte-compiles every module on 3.11 and 3.12
   workflows/cicd.yaml   The course's AWS ECR + EC2 deploy (manual trigger)
@@ -276,11 +293,14 @@ Use the dropdown in the message box to pick a model. Hover over a chat in the
 sidebar and open its menu to pin, rename or delete it. Deleting a chat removes
 its messages, memories, uploaded files and embeddings.
 
-To talk to the agent without the web page:
+### Inspecting each stage
 
-```bash
-python scripts/test_agent.py
-```
+| To see | Where |
+| --- | --- |
+| Which tool the agent is using right now | The label above the answer while it streams, for example "Searching the web" |
+| Every step of a run: prompt, tool calls, arguments, results, tokens, time | LangSmith, project `salibot` (set `LANGSMITH_TRACING=true` in `.env`) |
+| The agent without the web page | `python scripts/test_agent.py` |
+| What each screenshot in this README was made from | The `.txt` file with the same name in [`docs/screenshots/`](docs/screenshots) |
 
 If someone forgets their password, whoever runs the server can reset it. The
 new password is typed hidden and every session for that account is logged out:
@@ -288,6 +308,81 @@ new password is typed hidden and every session for that account is logged out:
 ```bash
 python scripts/reset_password.py
 ```
+
+---
+
+## Key concepts
+
+Short version here. The problems behind each one are in
+**[`notes/learning-log.md`](notes/learning-log.md)**.
+
+**An agent** is a model in a loop. Gemini reads the conversation and either
+answers or asks for a tool; the tool runs, its result goes back to Gemini, and
+the loop repeats until Gemini answers in text. In LangGraph that loop is two
+nodes, `chatbot` and `tools`, and one condition between them.
+→ [Read more](notes/learning-log.md#2-the-agent)
+
+**Tool calling** means the model picks a tool and fills in its arguments from
+the tool's name, description and parameters alone. So the docstring is the
+interface: most of SaliBot's agent fixes were changes to words, not code.
+→ [Read more](notes/learning-log.md#2-the-agent)
+
+**RAG (retrieval-augmented generation)** lets the model answer from documents
+it was never trained on. Uploaded files are split into overlapping chunks,
+each chunk is turned into an embedding (a list of numbers placed by meaning),
+and a question is matched to the nearest chunks, which are handed to the model.
+→ [Read more](notes/learning-log.md#3-tools-and-files)
+
+**State per request** is what makes a chatbot safe for more than one person.
+The chat id travels with each run in `RunnableConfig`, so two people chatting
+at the same moment never read or write each other's memories or documents.
+→ [Read more](notes/learning-log.md#4-streaming-and-per-user-state)
+
+**Checkpoints** are LangGraph's saved copy of each chat after every step.
+They give the agent its short-term memory between messages, and they are what
+lets SaliBot resume a run on a backup model when Gemini is busy.
+→ [Read more](notes/learning-log.md#7-reliability-when-gemini-is-busy)
+
+---
+
+## File types, and how each one is read
+
+Every file becomes plain text first, then goes through the same chunking and
+embedding. What differs is how the text is pulled out.
+
+![Five file types uploaded to one chat, chunked, and searched](docs/screenshots/ingestion.png)
+
+| Type | Read with | What becomes text |
+| --- | --- | --- |
+| `.pdf` | pypdf | The text layer of every page (a scanned PDF has none) |
+| `.docx` | docx2txt | The document's text |
+| `.txt` `.md` `.py` `.csv` | Plain read | The file as it is |
+| `.xlsx` | openpyxl | Every sheet, one line per row: `Week \| Topic \| Kit` |
+| `.pptx` | python-pptx | The text on every slide, labelled `Slide 1:`, `Slide 2:` |
+| `.png` `.jpg` `.jpeg` `.webp` | Gemini vision | A description of the image plus any text written in it |
+
+The image row is the one worth a second look. The architecture diagram above
+has no text layer at all, yet it became 3,641 characters and 6 searchable
+chunks, because Gemini described it. In the same test a 185-character
+spreadsheet became 1 chunk, and asked which kit week 3 needs, document search
+returned that spreadsheet first out of 21 chunks.
+
+---
+
+## Settings, and why
+
+| Setting | Value | Reasoning |
+| --- | --- | --- |
+| Default model (`GOOGLE_MODEL`) | `gemini-3.5-flash-lite` | The course's `gemini-2.5-flash` is closed to new keys. The free daily limit on `gemini-3.5-flash` ran out fastest, so `flash-lite` became the default. |
+| Fallback order | `flash-lite`, then `flash` | Tried when the chosen model is busy before answering. Most reliable first. |
+| Temperature | 0.3 | Low, so tool choices and facts stay steady, with some variety left in the wording. |
+| Chunk size / overlap | 900 / 150 characters | The course's values, kept. The overlap (about 17%) means a sentence cut at a boundary still appears whole in the next chunk. |
+| Chunks returned per search | 4 | The course's value. In the test above the right chunk came back first. |
+| Embedding model | `gemini-embedding-001` | Uses the same Google key, with nothing to download. A question must be embedded by the same model as the documents. |
+| Password hashing | PBKDF2-SHA256, 200,000 rounds, random salt | Slow on purpose, so a stolen database cannot be guessed through quickly. |
+| Minimum password length | 8 characters | Checked when the account is created. |
+| Voice recording limit | 20 MB | Larger recordings are refused before they are sent to Gemini. |
+| Default timezone | `Africa/Accra` | Used by the date tool unless another timezone is asked for. |
 
 ---
 
@@ -408,7 +503,7 @@ What comes next is in [`ROADMAP.md`](ROADMAP.md).
 | [`notes/learning-log.md`](notes/learning-log.md) | Every problem hit while building SaliBot, why it happened, and what changed. |
 | [`ROADMAP.md`](ROADMAP.md) | What is finished and what comes next. |
 | [`docs/architecture.drawio`](docs/architecture.drawio) | The architecture diagram, editable in [draw.io](https://app.diagrams.net). |
-| [`docs/screenshots/`](docs/screenshots) | The screenshots in this README. |
+| [`docs/screenshots/`](docs/screenshots) | The screenshots in this README, each with the transcript it was made from. |
 | [`.env.example`](.env.example) | Every setting SaliBot reads, with where to get each key. |
 
 ---

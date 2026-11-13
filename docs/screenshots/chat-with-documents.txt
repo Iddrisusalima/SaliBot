@@ -1,0 +1,21 @@
+# A question answered only from an uploaded file (ROADMAP.md, 6 chunks)
+
+Tool used: search_uploaded_documents
+
+You: According to my uploaded roadmap, what is still left to do? Keep it short.
+
+SaliBot:
+According to your uploaded roadmap, here is what is still left to do:
+
+**Stage 1 — Finish the course**
+* **Deploy** (get a live link on Hugging Face Spaces / AWS)
+* **Demo video** (record using the script in `launch/` after deploying)
+* **LangSmith walkthrough** (explain tracing/monitoring)
+* *Note:* Update the `langsmith` package before Jan 31, 2027 (deprecated API endpoint warning).
+
+**Stage 2 — Make it safe for other people**
+* "Sign in with Google" (optional extra)
+* Paid Gemini plan (with a monthly spending limit)
+* PostgreSQL instead of SQLite for the server database
+* Upload size limits & rate limits
+* Error monitoring (server logs)

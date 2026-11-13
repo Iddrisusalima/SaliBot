@@ -1,0 +1,18 @@
+# Inside the agent: which tool it calls, with what, and what comes back
+
+You: Remember that I teach robotics at a school in Accra.
+  [chatbot] calls remember_this(memory='User teaches robotics at a school in Accra.')
+  [tools]   remember_this -> Memory saved successfully.
+  [chatbot] answers:
+     I've remembered that! I'll keep in mind that you teach robotics at a school in
+     Accra. Let me know if you need any lesson ideas, resources, or anything else!
+
+You: What do I teach, and what is 18% of 2,450?
+  [chatbot] calls recall_memory(query='teach')
+  [chatbot] calls calculator(expression='0.18 * 2450')
+  [tools]   recall_memory -> - User teaches robotics at a school in Accra.
+  [tools]   calculator -> 441.0
+  [chatbot] answers:
+     Based on what you told me earlier, you teach **robotics** at a school in Accra.
+
+     Also, 18% of 2,450 is **441**.

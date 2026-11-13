@@ -1,0 +1,6 @@
+# Create account / Log in, shown to anyone who is not logged in
+
+Create account: name, email, password (at least 8 characters)
+Log in: email, password
+Passwords are stored as salted PBKDF2-SHA256 hashes. The login token is sent as
+Authorization: Bearer on every request and deleted on log out.

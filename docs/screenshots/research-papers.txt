@@ -1,0 +1,26 @@
+# Asked for recent papers, the agent chose arXiv (newest first) and web search on its own
+
+Tools used: search_research_papers, search_research_papers, tavily_search
+
+You: Find 3 recent research papers on agentic AI, newest first.
+
+SaliBot:
+Based on recent web search results from arXiv and academic tracking, here are 3 notable research papers on agentic AI, ordered from newest to older:
+
+1. **Adaptation of Agentic AI: A Survey of Post-Training, Memory, and Skills**
+   * **Authors:** Pengcheng Jiang et al. (including Jiawei Han, Heng Ji, Yejin Choi, Dawn Song, etc.)
+   * **Published/Revised:** December 2025 (Revised March 2026)
+   * **Summary:** This comprehensive survey explores how LLM agents are moving beyond simple prompting into post-training, reinforcement learning with verifiable rewards, persistent memory, and reusable skill accumulation under a unified framework of "adaptation."
+   * **Link:** [arXiv:2512.16301](https://arxiv.org/abs/2512.16301)
+
+2. **Small Language Models are the Future of Agentic AI**
+   * **Authors:** Peter Belcak, Greg Heinrich, et al.
+   * **Published/Revised:** June 2025 (Revised September 2026)
+   * **Summary:** This paper investigates the viability and future trajectory of deploying compact, highly optimized small language models (SLMs) to handle complex agentic workflows and tool-use efficiently.
+   * **Link:** [arXiv:2506.02153](https://arxiv.org/abs/2506.02153)
+
+3. **Agentic AI: A Comprehensive Survey of Architectures, Applications, and Future Directions**
+   * **Authors:** Mohamad Abou Ali, Fadi Dornaika
+   * **Published:** October 2025
+   * **Summary:** A structured taxonomy of agentic AI architectures, looking at how modular planning, reasoning, memory components, and tool integration are categorized across different application domains.
+   * **Link:** [arXiv:2510.25445](https://arxiv.org/abs/2510.25445)
