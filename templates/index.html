@@ -1837,7 +1837,11 @@
         const data = await res.json();
         await startApp(data.user);
       } catch {
-        showAuth("login");
+        // SaliBot: the saved login no longer works (expired, or the account was removed),
+        // so forget it and show the landing page like a first visit
+        authToken = null;
+        try { localStorage.removeItem("auth_token"); } catch {}
+        showLanding();
       }
     })();
   </script>
