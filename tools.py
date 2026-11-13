@@ -41,6 +41,84 @@ def thread_of(config: RunnableConfig | None) -> str:
     return CURRENT_THREAD_ID
 
 
+# ---------------------------------------------------------------
+# SaliBot upgrade: a calculator that can only do maths
+# ---------------------------------------------------------------
+# Python reads the expression into a tree (ast), and we walk the tree ourselves,
+# allowing only numbers, + - * / // % **, brackets and a list of maths functions.
+# Anything else (names, attributes, imports, strings...) is refused.
+
+import ast
+import operator
+
+_OPERATORS = {
+    ast.Add: operator.add,
+    ast.Sub: operator.sub,
+    ast.Mult: operator.mul,
+    ast.Div: operator.truediv,
+    ast.FloorDiv: operator.floordiv,
+    ast.Mod: operator.mod,
+    ast.Pow: operator.pow,
+    ast.USub: operator.neg,
+    ast.UAdd: operator.pos,
+}
+
+_FUNCTIONS = {
+    name: getattr(math, name)
+    for name in ("sqrt", "cbrt", "exp", "log", "log2", "log10", "sin", "cos", "tan",
+                 "asin", "acos", "atan", "degrees", "radians", "floor", "ceil",
+                 "factorial", "gcd", "hypot", "fabs")
+    if hasattr(math, name)
+}
+_FUNCTIONS.update({"abs": abs, "round": round, "min": min, "max": max, "sum": lambda *x: sum(x)})
+
+_CONSTANTS = {"pi": math.pi, "e": math.e, "tau": math.tau}
+
+_MAX_EXPONENT = 1000      # stops 9**9**9, which would freeze the server
+_MAX_FACTORIAL = 1000
+
+
+def safe_math(expression: str):
+    if len(expression) > 300:
+        raise ValueError("expression is too long")
+
+    # Accept "math.sqrt(16)" as well as "sqrt(16)", and "^" as power
+    expression = expression.replace("math.", "").replace("^", "**")
+
+    def walk(node):
+        if isinstance(node, ast.Expression):
+            return walk(node.body)
+
+        if isinstance(node, ast.Constant) and type(node.value) in (int, float):
+            return node.value
+
+        if isinstance(node, ast.Name) and node.id in _CONSTANTS:
+            return _CONSTANTS[node.id]
+
+        if isinstance(node, ast.UnaryOp) and type(node.op) in _OPERATORS:
+            return _OPERATORS[type(node.op)](walk(node.operand))
+
+        if isinstance(node, ast.BinOp) and type(node.op) in _OPERATORS:
+            left, right = walk(node.left), walk(node.right)
+            if isinstance(node.op, ast.Pow):
+                too_big = abs(right) > _MAX_EXPONENT or (
+                    isinstance(left, int) and left.bit_length() * abs(right) > 100_000)
+                if too_big:
+                    raise ValueError("exponent is too large")
+            return _OPERATORS[type(node.op)](left, right)
+
+        if (isinstance(node, ast.Call) and isinstance(node.func, ast.Name)
+                and node.func.id in _FUNCTIONS and not node.keywords):
+            args = [walk(arg) for arg in node.args]
+            if node.func.id == "factorial" and args and args[0] > _MAX_FACTORIAL:
+                raise ValueError("number is too large for factorial")
+            return _FUNCTIONS[node.func.id](*args)
+
+        raise ValueError("only numbers, + - * / // % ** and maths functions are allowed")
+
+    return walk(ast.parse(expression, mode="eval"))
+
+
 web_search = TavilySearch(
     max_results=5,
     topic="general",
@@ -56,17 +134,10 @@ def calculator(expression: str) -> str:
     Example: 2 + 2, math.sqrt(16), 10 * 5
     """
 
+    # SaliBot upgrade: the course used eval(), which can run any Python code.
+    # safe_math() only understands numbers, operators and maths functions.
     try:
-        allowed = {
-            "math": math,
-            "abs": abs,
-            "round": round,
-            "min": min,
-            "max": max,
-            "sum": sum
-        }
-
-        result = eval(expression, {"__builtins__": {}}, allowed)
+        result = safe_math(expression)
         return str(result)
 
     except Exception as e:

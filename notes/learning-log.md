@@ -76,6 +76,23 @@ The course reads PDF, Word, TXT, Markdown, Python and CSV. I added Excel
 so `rag.py` sends them to Gemini vision and stores the description plus any
 text it reads, which is then chunked and embedded like any other document.
 
+### The calculator could run any code
+
+The course's calculator passes the model's expression to `eval()` with
+builtins removed. That looks locked down but is a known escape: an expression
+like `().__class__.__bases__[0].__subclasses__()` reaches Python's internals
+again. On a public site, a user could talk the model into "calculating" an
+expression that reads `.env` or runs a command.
+
+`safe_math()` in `tools.py` replaces it. Python's `ast` module turns the
+expression into a tree, and the code walks that tree itself, allowing only
+numbers, `+ - * / // % **`, brackets, `pi`/`e`/`tau` and a list of `math`
+functions. Everything else is refused. Exponents and factorials have limits,
+because `9**9**9` is valid maths that would freeze the server.
+
+**Lesson:** removing the dangerous parts of a powerful tool is weaker than
+building a small tool that can only do the one job.
+
 ### YouTube summaries without downloading anything
 
 Gemini can watch a public YouTube URL directly when it is passed as

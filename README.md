@@ -76,7 +76,7 @@ chat alone: another chat, or another user, cannot search them.
 | **Research papers** | Searches arXiv on any topic, newest first when you ask for recent ones |
 | **YouTube summaries** | Paste a YouTube link; Gemini watches the video and summarises it |
 | **Knows today's date** | A date and time tool, so "this week" questions are answered correctly |
-| **Calculator** | Arithmetic and `math` functions |
+| **Calculator** | Arithmetic and maths functions, through a parser that refuses anything that is not maths |
 | **Streaming replies** | Answers appear word by word, with a live label for the tool in use |
 | **Voice input** | Record a message; Gemini transcribes it |
 | **User accounts** | Create an account and log in; every user only sees their own chats |
@@ -147,6 +147,10 @@ says so.
   resumes it on a backup model, otherwise it sends the question again, so the
   conversation never holds the question twice.
 - **Another user's chat returns 404, not 403.** It does not confirm the chat exists.
+- **The calculator cannot run code.** The course passes the model's expression to
+  `eval()`, so a prompt-injected "calculation" could read files or run commands
+  on the server. SaliBot parses the expression into a tree and evaluates only
+  numbers, operators and a list of maths functions, with limits on exponents.
 
 ---
 
@@ -351,6 +355,8 @@ python -m compileall -q *.py scripts
 | Model closed to new keys | Called `gemini-2.5-flash` on a new key | One-line message to pick another model |
 | Free daily limit used up | Hit the `429` quota | One-line message to switch model or wait |
 | Model busy before answering | Made the chosen model fail with `503`, before and after its step was saved | Switched to `gemini-3.5-flash-lite`, answered, question stored once |
+| Code passed to the calculator | `open('.env').read()`, `__import__('os')`, `().__class__...` | Refused: "only numbers, operators and maths functions" |
+| Calculation that would freeze the server | `9**9**9`, `factorial(100000)` | Refused instantly: "too large" |
 | Model busy mid-answer | Made the model fail with `503` after its first words | Partial answer kept, shown and saved, marked as possibly incomplete |
 
 ---
@@ -387,9 +393,6 @@ in before retrying.
 
 - **SQLite** is fine for one server; several servers or heavy traffic need PostgreSQL.
 - **No upload size or rate limits** yet, beyond Gemini's own quota.
-- **The calculator** evaluates expressions with Python's builtins removed. That
-  limits it, but it is not a true sandbox; a public deployment should use a
-  parser that only understands arithmetic.
 - **Free-tier Gemini** has a small daily quota and is often busy. The fallback
   helps; a paid plan with a spending limit is the real fix.
 - **Login is email and password only.** "Sign in with Google" is on the roadmap.
