@@ -1,6 +1,6 @@
 <div align="center">
 
-# SaliBot 🤖
+# SaliBot
 
 **An agentic AI chatbot that searches the web, reads your documents, remembers you, and does the maths, built with LangGraph, FastAPI and Google Gemini.**
 
@@ -16,30 +16,30 @@
 
 ---
 
-## ✨ What SaliBot can do
+## What SaliBot can do
 
-| | Feature | How it works |
-|---|---|---|
-| 🧠 | **Agentic reasoning** | A LangGraph agent decides by itself when to answer directly and when to use a tool |
-| 🌐 | **Live web search** | Tavily search for today's news, prices and anything time-sensitive |
-| 📄 | **Chat with your documents (RAG)** | Upload **PDF, Word, TXT, Markdown, CSV, Excel, PowerPoint or images**; SaliBot searches them by meaning and cites the file |
-| 🖼️ | **Reads pictures** | Gemini vision describes images and copies any text in them (e.g. photos of whiteboard notes) |
-| 💾 | **Long-term memory** | "Remember that I teach robotics" → saved and recalled later |
-| 🧮 | **Calculator** | A safe, sandboxed maths tool |
-| 🔬 | **Research papers** | Searches arXiv for papers on any topic (newest first when you ask for recent ones) |
-| 🎬 | **YouTube summaries** | Paste a YouTube link; Gemini watches the video and summarises it |
-| 🕒 | **Knows today's date** | A date/time tool, so "this week" and "today" questions are answered correctly |
-| 🗑️ | **Forget on request** | "Forget what I told you about…" deletes the saved memory |
-| ⚡ | **Streaming replies** | Answers appear word by word, with live tool status ("Searching the web…") |
-| 🎙️ | **Voice input** | Record a message; Gemini transcribes it |
-| 🔐 | **User accounts** | Create an account / log in; every user only sees their own chats |
-| 📌 | **Chat management** | Pin, rename and delete chats from a ⋯ menu |
-| 🔀 | **Model picker** | Switch between Gemini models per message |
-| 📊 | **Observability** | Every run is traced in LangSmith (latency, tokens, tool calls, errors) |
+| Feature | How it works |
+|---|---|
+| **Agentic reasoning** | A LangGraph agent decides by itself when to answer directly and when to use a tool |
+| **Live web search** | Tavily search for today's news, prices and anything time-sensitive |
+| **Chat with your documents (RAG)** | Upload **PDF, Word, TXT, Markdown, CSV, Excel, PowerPoint or images**; SaliBot searches them by meaning and cites the file |
+| **Reads pictures** | Gemini vision describes images and copies any text in them (e.g. photos of whiteboard notes) |
+| **Long-term memory** | "Remember that I teach robotics" → saved and recalled later |
+| **Calculator** | A safe, sandboxed maths tool |
+| **Research papers** | Searches arXiv for papers on any topic (newest first when you ask for recent ones) |
+| **YouTube summaries** | Paste a YouTube link; Gemini watches the video and summarises it |
+| **Knows today's date** | A date/time tool, so "this week" and "today" questions are answered correctly |
+| **Forget on request** | "Forget what I told you about…" deletes the saved memory |
+| **Streaming replies** | Answers appear word by word, with live tool status ("Searching the web…") |
+| **Voice input** | Record a message; Gemini transcribes it |
+| **User accounts** | Create an account / log in; every user only sees their own chats |
+| **Chat management** | Pin, rename and delete chats from a ⋯ menu |
+| **Model picker** | Switch between Gemini models per message |
+| **Observability** | Every run is traced in LangSmith (latency, tokens, tool calls, errors) |
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 ![SaliBot architecture](docs/architecture.png)
 
@@ -55,7 +55,7 @@
 
 ---
 
-## 🧰 Tech stack
+## Tech stack
 
 | Layer | Technology |
 |---|---|
@@ -72,7 +72,7 @@
 
 ---
 
-## 📁 Project structure
+## Project structure
 
 ```
 SaliBot/
@@ -93,7 +93,7 @@ SaliBot/
 
 ---
 
-## 🚀 Run it locally
+## Run it locally
 
 **1. Clone the repository**
 ```bash
@@ -132,7 +132,7 @@ Open **http://localhost:8080**, create an account, and start chatting.
 
 ---
 
-## ☁️ Deployment
+## Deployment
 
 ### Option A: AWS with CI/CD (GitHub Actions + ECR + EC2)
 
@@ -162,7 +162,7 @@ The same `Dockerfile` runs on a Docker Space. Add the API keys as **Space secret
 
 ---
 
-## 🔒 Security notes
+## Security notes
 
 - API keys live in `.env` (git-ignored) or in GitHub / Space **secrets**, never in the code.
 - `.dockerignore` keeps `.env`, local databases and uploads out of the Docker image.
@@ -171,22 +171,22 @@ The same `Dockerfile` runs on a Docker Space. Add the API keys as **Space secret
 
 ---
 
-## 🗺️ Roadmap
+## Roadmap
 
 - [ ] PostgreSQL for multi-user production hosting
 - [ ] Next.js frontend
 
 ---
 
-## 🙏 Acknowledgements
+## Acknowledgements
 
 Built while following **DSwithBappy's** course *"Build Your Own ChatGPT Agent with LLMs, LangGraph, FastAPI, LangSmith, ChromaDB, SQLAlchemy & AWS"*, then extended with accounts, a chat menu, 4 extra tools, extra file types, image reading, voice transcription and a redesigned interface.
 
-## 👩🏾‍💻 Author
+## Author
 
 **Salima Iddrisu**: AI engineer and robotics instructor
 GitHub: [@Iddrisusalima](https://github.com/Iddrisusalima)
 
-## 📄 License
+## License
 
 Licensed under the [Apache License 2.0](LICENSE).
