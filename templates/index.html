@@ -1101,6 +1101,12 @@
               chip.textContent = label;
               toolsBox.appendChild(chip);
               statusText.textContent = label + "...";
+            } else if (event.switch) {
+              const chip = document.createElement("span");
+              chip.className = "tool-chip";
+              chip.textContent = `Model busy, switched to ${event.switch}`;
+              toolsBox.appendChild(chip);
+              statusText.textContent = `Switching to ${event.switch}...`;
             } else if (event.error) {
               reply += `\n\n⚠️ ${event.error}`;
               queueRender();

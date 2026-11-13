@@ -151,6 +151,16 @@ def extract_text_from_chunk(chunk) -> str:
     return ""
 
 
+# SaliBot upgrade: models to fall back on when the chosen one is busy (most reliable first)
+FALLBACK_MODELS = ["gemini-3.5-flash-lite", "gemini-3.5-flash"]
+
+
+def is_model_busy(error: Exception) -> bool:
+    text = str(error)
+    return any(code in text for code in ("UNAVAILABLE", "503", "RESOURCE_EXHAUSTED", "429", "overloaded",
+                                          "disconnected", "timed out", "Timeout"))
+
+
 def friendly_error(error: Exception, model: str) -> str:
     """Turn Google's long technical errors into short, helpful messages."""
     text = str(error)
@@ -503,8 +513,6 @@ async def chat_stream(request: Request):
     if not can_use_thread(user, thread_id):
         return JSONResponse({"error": "Chat not found."}, status_code=404)
 
-    agent = get_agent(selected_model)
-
     create_or_update_conversation(thread_id, user_message)
     can_use_thread(user, thread_id)   # SaliBot: mark the new chat as yours
     save_chat_message(thread_id, "user", user_message)
@@ -517,44 +525,71 @@ async def chat_stream(request: Request):
         }
     }
 
+    # SaliBot upgrade: if Gemini is busy, automatically try the next model
+    models_to_try = [normalize_model_name(selected_model)]
+    for backup in FALLBACK_MODELS:
+        if backup not in models_to_try:
+            models_to_try.append(backup)
+
     def event_generator():
         final_answer = ""
 
-        try:
-            inputs = {
-                "messages": [
-                    HumanMessage(content=user_message)
-                ]
-            }
+        inputs = {
+            "messages": [
+                HumanMessage(content=user_message)
+            ]
+        }
 
-            for chunk, metadata in agent.stream(
-                inputs,
-                config=config,
-                stream_mode="messages"
-            ):
-                # SaliBot extra: tell the page which tool is running (🌐 Searching the web, etc.)
-                for call in getattr(chunk, "tool_call_chunks", None) or []:
-                    if call.get("name"):
-                        yield sse_data({"tool": call["name"]})
+        for attempt, model_name in enumerate(models_to_try):
+            agent = get_agent(model_name)
 
-                if not should_stream_chunk(chunk, metadata):
+            try:
+                # On a retry, resume the stopped run if it was saved; otherwise send the question again
+                run_input = inputs
+                if attempt > 0 and agent.get_state(config).next:
+                    run_input = None
+
+                for chunk, metadata in agent.stream(
+                    run_input,
+                    config=config,
+                    stream_mode="messages"
+                ):
+                    # SaliBot extra: tell the page which tool is running (Searching the web, etc.)
+                    for call in getattr(chunk, "tool_call_chunks", None) or []:
+                        if call.get("name"):
+                            yield sse_data({"tool": call["name"]})
+
+                    if not should_stream_chunk(chunk, metadata):
+                        continue
+
+                    token = extract_text_from_chunk(chunk)
+
+                    if token:
+                        final_answer += token
+                        yield sse_data({"token": token})
+
+                break   # finished without errors
+
+            except Exception as e:
+                is_last = attempt == len(models_to_try) - 1
+
+                # Busy/limit errors before any words were shown → switch model and carry on
+                if is_model_busy(e) and not final_answer and not is_last:
+                    yield sse_data({"switch": models_to_try[attempt + 1]})
                     continue
 
-                token = extract_text_from_chunk(chunk)
+                # SaliBot extra: friendly_error(...) gives a short message instead of Google's long str(e)
+                message = friendly_error(e, model_name)
+                if final_answer:
+                    message += " The answer above may be incomplete. Send your question again to get the full reply."
+                final_answer += f"\n\n⚠️ {message}"
+                yield sse_data({"error": message})
+                break
 
-                if token:
-                    final_answer += token
-                    yield sse_data({"token": token})
+        if final_answer.strip():
+            save_chat_message(thread_id, "assistant", final_answer)
 
-            if final_answer.strip():
-                save_chat_message(thread_id, "assistant", final_answer)
-
-            yield sse_data({"done": True})
-
-        except Exception as e:
-            # SaliBot extra: friendly_error(...) gives a short message instead of Google's long str(e)
-            yield sse_data({"error": friendly_error(e, normalize_model_name(selected_model))})
-            yield sse_data({"done": True})
+        yield sse_data({"done": True})
 
     return StreamingResponse(
         event_generator(),
