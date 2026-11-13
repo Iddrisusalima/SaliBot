@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>SaliBot</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -38,6 +38,12 @@
     }
 
     body { display: flex; overflow: hidden; }
+
+    /* SaliBot fix: on phones the browser's address bar covers the bottom of a
+       100%-tall page. 100dvh is the height you can actually see. */
+    @supports (height: 100dvh) {
+      html, body { height: 100dvh; }
+    }
     button { font-family: inherit; cursor: pointer; color: inherit; }
     svg { width: 18px; height: 18px; flex-shrink: 0; }
 
@@ -616,7 +622,11 @@
     @media (max-width: 760px) {
       .sidebar {
         position: fixed;
-        inset: 0 auto 0 0;
+        inset: 0 auto auto 0;
+        height: 100vh;
+        height: 100dvh;
+        width: min(84vw, 320px);
+        padding-bottom: calc(10px + env(safe-area-inset-bottom));
         margin-left: 0 !important;
         transform: translateX(-100%);
         box-shadow: 10px 0 40px rgba(0, 0, 0, .5);
@@ -632,6 +642,16 @@
       .open-sidebar { display: grid; }
       .collapse-btn { display: none; }
       .chat, .composer-wrap { padding-left: 14px; padding-right: 14px; }
+      .composer-wrap { padding-bottom: calc(10px + env(safe-area-inset-bottom)); }
+      .profile { padding-top: 14px; }
+
+      /* Message box like ChatGPT on phones: text on top, buttons underneath */
+      .composer { flex-wrap: wrap; border-radius: 22px; padding: 8px 8px 6px; row-gap: 2px; }
+      #messageInput { order: -1; flex: 1 0 100%; padding: 6px 10px; }
+      #modelSelect { margin-right: auto; }
+
+      /* 16px stops iPhones zooming in when you tap a text box */
+      #messageInput, .auth-card input { font-size: 16px; }
       .topbar { padding: 8px 10px; }
       .message.user .bubble { max-width: 88%; }
       .suggestions { grid-template-columns: 1fr; }
