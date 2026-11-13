@@ -12,10 +12,23 @@ Path("data").mkdir(exist_ok=True)
 
 DATABASE_URL = "sqlite:///data/chatbot_memory.db"
 
-engine = create_engine(
-    DATABASE_URL,
-    connect_args={"check_same_thread": False}
-)
+# SaliBot upgrade: if DATABASE_URL is set (an online PostgreSQL database such as
+# Neon), use it, so accounts and chats survive restarts. Otherwise use the local file.
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+ONLINE_DATABASE_URL = os.getenv("DATABASE_URL", "").strip()
+
+if ONLINE_DATABASE_URL:
+    # SQLAlchemy needs to be told to use the psycopg (version 3) driver
+    DATABASE_URL = re.sub(r"^postgres(ql)?://", "postgresql+psycopg://", ONLINE_DATABASE_URL)
+    engine = create_engine(DATABASE_URL, pool_pre_ping=True, pool_recycle=300)
+else:
+    engine = create_engine(
+        DATABASE_URL,
+        connect_args={"check_same_thread": False}
+    )
 
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
 Base = declarative_base()
@@ -89,7 +102,7 @@ def init_db():
         if "user_id" not in columns:
             conn.execute(text("ALTER TABLE conversations ADD COLUMN user_id INTEGER"))
         if "pinned" not in columns:
-            conn.execute(text("ALTER TABLE conversations ADD COLUMN pinned BOOLEAN DEFAULT 0"))
+            conn.execute(text("ALTER TABLE conversations ADD COLUMN pinned BOOLEAN DEFAULT FALSE"))
 
 
 def hash_password(password: str) -> str:

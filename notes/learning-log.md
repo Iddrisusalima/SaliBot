@@ -199,3 +199,22 @@ first fallback looked correct and was wrong.
   `.dockerignore` excludes `.env`, the databases and uploads.
 - **Lesson:** free tiers change. Check the current terms on the day, and have
   the app depend only on a Dockerfile so moving hosts is a setting, not a rewrite.
+
+### Keeping data when the server restarts
+
+Render's free plan does not keep files between restarts, and every push
+redeploys. Accounts and chats lived in SQLite files in `data/`, so they vanished
+on every update. I found out when I could not log in to my own account.
+
+`database.py` now reads `DATABASE_URL`. When it is set (a free Neon PostgreSQL
+database), SQLAlchemy uses it; when it is not, SaliBot uses the local SQLite file
+as before. The agent's own conversation state moved too: LangGraph's
+`PostgresSaver` replaces `SqliteSaver`, through one shared connection pool for
+every model, so SaliBot still remembers earlier messages in a chat after a restart.
+
+I tested it the way it fails: create an account and a chat, delete `data/`, start
+a new process, log in. Everything came back, and the follow-up question was
+answered from the saved memory.
+
+**Lesson:** a free host's disk is temporary. Anything worth keeping belongs in a
+database the app connects to, not in a file next to the code.

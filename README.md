@@ -110,7 +110,7 @@ belong to this chat alone: another chat, or another user, cannot search them.
 A message goes through three layers. **FastAPI** checks who you are and that
 the chat is yours. The **LangGraph agent** loops between Gemini and the tools
 until Gemini has an answer. The answer is **streamed** back to the page while
-SQLite, ChromaDB and LangSmith record what happened.
+the database, ChromaDB and LangSmith record what happened.
 
 ![SaliBot architecture](docs/architecture.png)
 
@@ -136,7 +136,8 @@ it with [draw.io](https://app.diagrams.net).
   `gemini-embedding-001`, and stores them in ChromaDB tagged with the chat id.
   Search is filtered by that tag.
 - **Database** (`database.py`): SQLAlchemy models for users, login sessions,
-  chats, messages and long-term memories, in SQLite.
+  chats, messages and long-term memories. Uses PostgreSQL when `DATABASE_URL`
+  is set (for example a free Neon database), otherwise a local SQLite file.
 - **Page** (`templates/index.html`): HTML, CSS and plain JavaScript. Reads the
   stream, renders Markdown safely (marked + DOMPurify), records voice, and
   shows which tool is running.
@@ -181,7 +182,8 @@ app.py                  FastAPI server: page, accounts, chats, uploads,
 agent.py                LangGraph agent, system prompt, model list
 tools.py                The nine agent tools
 rag.py                  Read files, chunk, embed, store and search in ChromaDB
-database.py             SQLite models: users, sessions, chats, messages, memory
+database.py             Database models: users, sessions, chats, messages, memory
+                        (PostgreSQL when DATABASE_URL is set, else SQLite)
 templates/
   index.html            The chat page
 
@@ -209,7 +211,8 @@ docs/
   workflows/cicd.yaml   The course's AWS ECR + EC2 deploy (manual trigger)
 ```
 
-Created when the app runs, all git-ignored: `data/` (SQLite databases),
+Created when the app runs, all git-ignored: `data/` (SQLite databases, only when
+no `DATABASE_URL` is set),
 `chroma_db/` (document embeddings) and `uploads/` (uploaded files).
 
 ---
@@ -405,8 +408,18 @@ SaliBot is live at **[salibot.onrender.com](https://salibot.onrender.com)**, a f
 Measured locally, SaliBot uses about 200 MB of memory while answering a
 document question, inside the free plan's 512 MB. Two things to know about the
 free plan: the service sleeps after 15 minutes without visitors and takes about
-a minute to wake, and its disk is not kept between restarts, so accounts and
-chats reset on each deploy. Persistent storage is on the roadmap (PostgreSQL).
+a minute to wake, and its disk is not kept between restarts.
+
+So accounts, chats, memories and the agent's conversation state live in a free
+**Neon** PostgreSQL database instead: set `DATABASE_URL` to Neon's connection
+string in Render's environment variables. Without it, SaliBot falls back to local
+SQLite files, which is what you want on your own machine. Tested by creating an
+account and a chat, deleting the local files, starting a fresh process, and
+logging back in: the account, the pinned chat, its history and the agent's
+memory of it were all still there.
+
+Uploaded documents are the one thing not kept yet: their embeddings are in a
+local ChromaDB folder, so they need uploading again after a restart.
 
 Hugging Face Spaces was the first plan, but Docker Spaces now need a paid
 account, so the Dockerfile's non-root user setup is kept because it is good
@@ -505,7 +518,9 @@ in before retrying.
 
 ## Known limitations and out of scope
 
-- **SQLite** is fine for one server; several servers or heavy traffic need PostgreSQL.
+- **Uploaded documents are not kept across restarts** on the free host. Their
+  embeddings live in a local ChromaDB folder; moving them to a hosted vector store
+  (or pgvector in the same PostgreSQL database) is the next step.
 - **No upload size or rate limits** yet, beyond Gemini's own quota.
 - **Free-tier Gemini** has a small daily quota and is often busy. The fallback
   helps; a paid plan with a spending limit is the real fix.

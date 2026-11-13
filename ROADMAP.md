@@ -32,7 +32,9 @@ My plan for growing SaliBot from a course project into a production app.
       read the wrong chat's memory/documents)
 - [ ] **Paid Gemini plan** with a monthly spending limit
       (free plan ≈ 20 requests/day on gemini-3.5-flash)
-- [ ] **PostgreSQL** instead of SQLite for the server database
+- [x] **PostgreSQL** (free Neon) for accounts, chats, memories and agent state
+- [ ] Keep uploaded documents across restarts (hosted vector store or pgvector)
+- [ ] **Forgot password?** by email (reset link)
 - [ ] Upload size limits + rate limits (so one person can't overload it)
 - [ ] Error monitoring (LangSmith traces + server logs)
 - [x] **Chat menu (⋯) in the sidebar**: rename, delete and **pin** a chat

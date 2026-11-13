@@ -22,3 +22,8 @@ sqlalchemy==2.0.50
 # SaliBot upgrade: Excel and PowerPoint uploads
 openpyxl==3.1.5
 python-pptx==1.0.2
+
+# SaliBot upgrade: online PostgreSQL database (used when DATABASE_URL is set)
+psycopg[binary]==3.3.9
+psycopg-pool==3.3.3
+langgraph-checkpoint-postgres==3.2.0

@@ -117,14 +117,44 @@ def build_agent(model_name: str):
     workflow.add_conditional_edges("chatbot", tools_condition)
     workflow.add_edge("tools", "chatbot")
 
-    conn = sqlite3.connect(
-        "data/langgraph_checkpoints.sqlite",
-        check_same_thread=False
-    )
+    return workflow.compile(checkpointer=get_checkpointer())
 
-    checkpointer = SqliteSaver(conn)
 
-    return workflow.compile(checkpointer=checkpointer)
+# SaliBot upgrade: one shared checkpointer for every model.
+# With DATABASE_URL set, LangGraph keeps each chat's state in PostgreSQL,
+# so SaliBot still remembers the conversation after a restart.
+_CHECKPOINTER = None
+
+
+def get_checkpointer():
+    global _CHECKPOINTER
+
+    if _CHECKPOINTER is not None:
+        return _CHECKPOINTER
+
+    database_url = os.getenv("DATABASE_URL", "").strip()
+
+    if database_url:
+        from psycopg.rows import dict_row
+        from psycopg_pool import ConnectionPool
+        from langgraph.checkpoint.postgres import PostgresSaver
+
+        pool = ConnectionPool(
+            conninfo=database_url,
+            max_size=5,
+            kwargs={"autocommit": True, "prepare_threshold": 0, "row_factory": dict_row},
+            check=ConnectionPool.check_connection,   # replace connections the server closed
+        )
+        _CHECKPOINTER = PostgresSaver(pool)
+        _CHECKPOINTER.setup()   # creates LangGraph's tables the first time
+    else:
+        conn = sqlite3.connect(
+            "data/langgraph_checkpoints.sqlite",
+            check_same_thread=False
+        )
+        _CHECKPOINTER = SqliteSaver(conn)
+
+    return _CHECKPOINTER
 
 
 _AGENT_CACHE = {}
