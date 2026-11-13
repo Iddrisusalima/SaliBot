@@ -25,7 +25,7 @@ My plan for growing SaliBot from a course project into a production app.
 
 ## Stage 2 — Make it safe for other people (the real "production" step)
 - [x] **Accounts**: create account / log in / log out (email + password)
-- [ ] "Sign in with Google" (optional extra)
+- [ ] **"Continue with Google"** sign-in (next: no password to forget)
 - [x] **Separate chats per user**: each user only sees and opens their own chats
 - [x] Replace the shared `CURRENT_THREAD_ID` in tools.py with per-request info
       (needed before many people chat at the *same moment*, or tools could
