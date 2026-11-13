@@ -2,11 +2,20 @@
 Reset a SaliBot account password (for the person running the server).
 
 Usage:
-    python reset_password.py
+    python scripts/reset_password.py
 
 You'll be asked for the email and the new password. The password is typed
 hidden and is only stored as a secure hash, never as plain text.
 """
+
+# Run from anywhere: work from the project folder so imports and data/ paths resolve
+import os
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT))
+os.chdir(ROOT)
 
 from getpass import getpass
 

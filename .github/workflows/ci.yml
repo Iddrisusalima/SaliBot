@@ -1,0 +1,39 @@
+name: CI
+
+# Runs on every push and pull request. It byte-compiles every module and script
+# and checks the files the app needs are present. It installs no dependencies and
+# makes no API calls, so it needs no secrets and costs nothing.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12"]
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Byte-compile every module and script
+        run: python -m compileall -q *.py scripts
+
+      - name: Check the required files are present
+        run: |
+          for f in app.py agent.py tools.py rag.py database.py \
+                   templates/index.html requirements.txt Dockerfile .env.example; do
+            test -f "$f" || { echo "Missing: $f"; exit 1; }
+          done
+
+      - name: Check no .env file was committed
+        run: test ! -f .env
