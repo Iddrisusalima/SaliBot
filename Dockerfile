@@ -20,8 +20,8 @@ COPY . .
 
 RUN mkdir -p uploads data
 
-# SaliBot: Hugging Face Spaces runs the app as user 1000, not root,
-# so that user must own the folders SaliBot writes to (data/, uploads/, chroma_db/)
+# SaliBot: run as a normal user (id 1000), not root, as Hugging Face Spaces
+# requires and as is safer on any host. That user must own the folders SaliBot writes to (data/, uploads/, chroma_db/)
 RUN useradd -m -u 1000 user && mkdir -p chroma_db && chown -R user:user /app
 USER user
 ENV HOME=/home/user

@@ -189,6 +189,13 @@ first fallback looked correct and was wrong.
 - The course deploys to AWS (ECR + EC2) with GitHub Actions. That workflow is in
   `.github/workflows/cicd.yaml`, switched to manual so it does not fail on
   every push without AWS secrets.
-- SaliBot is set up for Hugging Face Spaces, which runs the same `Dockerfile`
-  for free. API keys go in the Space's secrets, never in the image:
+- The plan was Hugging Face Spaces. When I went to create the Space, Docker was
+  marked **Paid**: Hugging Face now requires a PRO plan for Docker Spaces, and
+  free accounts can only make static pages. I had already changed the Dockerfile
+  to run as a normal user (Spaces runs containers as user 1000), and kept it.
+- SaliBot moved to Render's free plan. Before choosing it I measured memory:
+  about 200 MB while answering a document question, inside the 512 MB limit.
+  API keys are Render environment variables, never in the image:
   `.dockerignore` excludes `.env`, the databases and uploads.
+- **Lesson:** free tiers change. Check the current terms on the day, and have
+  the app depend only on a Dockerfile so moving hosts is a setting, not a rewrite.

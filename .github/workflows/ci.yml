@@ -39,7 +39,7 @@ jobs:
         run: test ! -f .env
 
   docker:
-    # Builds the same image Hugging Face Spaces builds, so a broken Dockerfile
+    # Builds the same image Render builds, so a broken Dockerfile
     # shows up here first. Nothing is pushed anywhere.
     runs-on: ubuntu-latest
     steps:

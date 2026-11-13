@@ -1,7 +1,7 @@
 name: Deploy FastAPI Docker Image to EC2
 
 # SaliBot: the course runs this on every push to main. It is manual here because
-# SaliBot is hosted on Hugging Face Spaces; run it from the Actions tab once the
+# SaliBot is hosted on Render; run it from the Actions tab once the
 # AWS secrets and the EC2 self-hosted runner are set up.
 on:
   workflow_dispatch:

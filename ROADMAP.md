@@ -13,10 +13,10 @@ My plan for growing SaliBot from a course project into a production app.
 - [x] Upgraded to Gemini 3.5 (2.5 is closed to new accounts)
 - [x] SaliBot's own chat page (FastAPI + HTML) with voice input
 - [x] Follow the rest of the video (Dockerfile, .dockerignore, cicd.yaml ready)
-- [ ] **Deploy** → live link (Hugging Face Spaces, free; AWS later with a funded card)
+- [x] **Deploy** → live at https://salibot.onrender.com (Render, free; AWS later with a funded card)
 - [x] Add "You were created by Salima Iddrisu" to the system prompt
 - [x] **Polished GitHub README** with a clean draw.io architecture diagram
-- [x] **Launch drafts**: dev.to article + LinkedIn post (in `launch/`, add live link)
+- [x] **Launch drafts**: dev.to article + LinkedIn post (in `launch/`, live link added)
 - [ ] **Demo video**: script ready in `launch/`; record it after deploying
 - [ ] **LangSmith walkthrough**: explain tracing and monitoring (traces, latency,
       error rate, LLM calls, cost & tokens, tools)

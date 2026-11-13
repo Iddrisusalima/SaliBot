@@ -15,6 +15,9 @@ started as the project in DSwithBappy's agentic chatbot course and was then
 extended well beyond it: four extra tools, more file types, image reading, voice
 input, accounts, a chat menu, and automatic fallback when a model is busy.
 
+**Try it live: [salibot.onrender.com](https://salibot.onrender.com)**. It runs on a free server that sleeps when
+nobody is using it, so the first visit can take about a minute to wake up.
+
 ---
 
 ## Table of contents
@@ -189,7 +192,7 @@ scripts/
 requirements.txt        Pinned dependencies
 .env.example            Template for environment variables (tracked)
 .env                    Your real API keys (git-ignored, never committed)
-Dockerfile              The image used by Hugging Face Spaces and AWS
+Dockerfile              The image used by Render and AWS
 .dockerignore           Keeps .env, databases and uploads out of the image
 
 README.md               This file
@@ -361,8 +364,8 @@ embedding. What differs is how the text is pulled out.
 | `.pptx` | python-pptx | The text on every slide, labelled `Slide 1:`, `Slide 2:` |
 | `.png` `.jpg` `.jpeg` `.webp` | Gemini vision | A description of the image plus any text written in it |
 
-The image row is the one worth a second look. The architecture diagram above
-has no text layer at all, yet it became 3,641 characters and 6 searchable
+The image row is the one worth a second look. In this test I uploaded
+SaliBot's own architecture diagram as a picture. It has no text layer at all, yet it became 3,641 characters and 6 searchable
 chunks, because Gemini described it. In the same test a 185-character
 spreadsheet became 1 chunk, and asked which kit week 3 needs, document search
 returned that spreadsheet first out of 21 chunks.
@@ -388,10 +391,26 @@ returned that spreadsheet first out of 21 chunks.
 
 ## Deployment
 
-### Hugging Face Spaces (free, no card)
+### Render (free)
 
-The same `Dockerfile` runs on a Docker Space on port 8080. API keys are added as
-**Space secrets**, not files, so they never enter the image.
+SaliBot is live at **[salibot.onrender.com](https://salibot.onrender.com)**, a free Render web service built from the same
+`Dockerfile`. Render rebuilds and redeploys it on every push to `main`.
+
+1. Sign up at [render.com](https://render.com) with GitHub.
+2. New, Web Service, pick this repository. Runtime **Docker**, instance type **Free**.
+3. Add the environment variables from [`.env.example`](.env.example), plus `PORT=8080`.
+   They are stored by Render, never in the image: `.dockerignore` excludes `.env`.
+4. Deploy. The first build takes about 5 to 10 minutes.
+
+Measured locally, SaliBot uses about 200 MB of memory while answering a
+document question, inside the free plan's 512 MB. Two things to know about the
+free plan: the service sleeps after 15 minutes without visitors and takes about
+a minute to wake, and its disk is not kept between restarts, so accounts and
+chats reset on each deploy. Persistent storage is on the roadmap (PostgreSQL).
+
+Hugging Face Spaces was the first plan, but Docker Spaces now need a paid
+account, so the Dockerfile's non-root user setup is kept because it is good
+practice on any host.
 
 ### AWS with GitHub Actions (ECR + EC2)
 
