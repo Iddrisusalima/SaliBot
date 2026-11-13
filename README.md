@@ -98,7 +98,7 @@ belong to this chat alone: another chat, or another user, cannot search them.
 | **Calculator** | Arithmetic and maths functions, through a parser that refuses anything that is not maths |
 | **Streaming replies** | Answers appear word by word, with a live label for the tool in use |
 | **Voice input** | Record a message; Gemini transcribes it |
-| **User accounts** | Create an account and log in; every user only sees their own chats |
+| **User accounts** | "Continue with Google" or email and password; every user only sees their own chats |
 | **Chat management** | Pin, rename and delete chats |
 | **Model picker and fallback** | Choose a Gemini model per message; if it is busy, SaliBot switches to a backup |
 | **Observability** | Every run is traced in LangSmith: latency, tokens, tool calls and errors |

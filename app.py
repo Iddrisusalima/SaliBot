@@ -61,8 +61,17 @@ from database import (
     rename_conversation,
     set_conversation_pinned,
     delete_conversation,
+    get_or_create_google_user,
 )
 from rag import delete_thread_documents
+
+# --- SaliBot upgrade: "Continue with Google" ---
+from google.oauth2 import id_token as google_id_token
+from google.auth.transport import requests as google_requests
+
+# The Client ID from Google Cloud (public, not a secret). Without it the
+# Google button stays hidden and email + password still works.
+GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "").strip()
 
 # SaliBot: show emojis and special characters correctly in the Windows terminal
 sys.stdout.reconfigure(encoding="utf-8")
@@ -250,6 +259,39 @@ async def login(request: Request):
 
     if not user:
         return JSONResponse({"error": "Wrong email or password."}, status_code=401)
+
+    return {"token": create_login_session(user.id), "user": user_payload(user)}
+
+
+@app.get("/auth/config")
+def auth_config():
+    """Tells the page whether to show the Google button."""
+    return {"google_client_id": GOOGLE_CLIENT_ID or None}
+
+
+class GoogleLogin(BaseModel):
+    credential: str
+
+
+@app.post("/auth/google")
+def google_login(body: GoogleLogin):
+    if not GOOGLE_CLIENT_ID:
+        return JSONResponse({"error": "Google sign-in isn't set up yet."}, status_code=400)
+
+    try:
+        # Checks Google's signature, that the sign-in was made for SaliBot, and that it hasn't expired
+        info = google_id_token.verify_oauth2_token(
+            body.credential, google_requests.Request(), GOOGLE_CLIENT_ID
+        )
+    except ValueError:
+        return JSONResponse({"error": "Google sign-in didn't work. Please try again."}, status_code=401)
+
+    if not info.get("email_verified"):
+        return JSONResponse({"error": "Your Google email isn't verified yet."}, status_code=401)
+
+    email = info["email"].strip().lower()
+    name = (info.get("name") or email.split("@")[0]).strip()
+    user = get_or_create_google_user(name, email)
 
     return {"token": create_login_session(user.id), "user": user_payload(user)}
 

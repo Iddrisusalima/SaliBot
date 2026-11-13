@@ -153,6 +153,38 @@ def create_user(name: str, email: str, password: str):
         db.close()
 
 
+def get_or_create_google_user(name: str, email: str):
+    """
+    SaliBot upgrade: "Continue with Google".
+    Google has already checked the email, so we find the account with that email,
+    or create one. Google-only accounts have no password, so password login
+    can never open them.
+    """
+    db = SessionLocal()
+
+    try:
+        user = db.query(User).filter(User.email == email).first()
+
+        if not user:
+            is_first_user = db.query(User).count() == 0
+
+            user = User(name=name, email=email, password_hash="", created_at=datetime.utcnow())
+            db.add(user)
+            db.commit()
+            db.refresh(user)
+
+            if is_first_user:
+                db.query(Conversation).filter(Conversation.user_id.is_(None)).update({"user_id": user.id})
+                db.commit()
+                db.refresh(user)
+
+        db.expunge(user)
+        return user
+
+    finally:
+        db.close()
+
+
 def authenticate_user(email: str, password: str):
     db = SessionLocal()
 

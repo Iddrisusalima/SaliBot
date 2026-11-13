@@ -27,3 +27,7 @@ python-pptx==1.0.2
 psycopg[binary]==3.3.9
 psycopg-pool==3.3.3
 langgraph-checkpoint-postgres==3.2.0
+
+# SaliBot upgrade: Continue with Google (checks Google's sign-in token)
+google-auth==2.62.2
+requests

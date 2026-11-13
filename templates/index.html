@@ -9,6 +9,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
+  <!-- SaliBot upgrade: Google's own "Continue with Google" button -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
 
   <style>
     /* ---------- SaliBot colours ---------- */
@@ -390,6 +392,20 @@
     }
     .landing-footer a { color: var(--muted); }
     .landing-footer a:hover { color: var(--text); }
+
+    /* SaliBot upgrade: Continue with Google */
+    .google-area { margin-bottom: 4px; }
+    .google-area[hidden] { display: none; }
+    #googleBtn { display: flex; justify-content: center; min-height: 44px; }
+    .auth-or {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 12px;
+      margin: 14px 0 2px;
+    }
+    .auth-or::before, .auth-or::after { content: ""; flex: 1; height: 1px; background: var(--border); }
 
     .auth-back {
       background: none;
@@ -1005,6 +1021,11 @@
       <div class="auth-tabs">
         <button type="button" id="tabSignup" class="active">Create account</button>
         <button type="button" id="tabLogin">Log in</button>
+      </div>
+
+      <div class="google-area" id="googleArea" hidden>
+        <div id="googleBtn"></div>
+        <div class="auth-or">or use your email</div>
       </div>
 
       <div id="nameField">
@@ -1671,6 +1692,49 @@
       await loadHistory();
     }
 
+    // ---------- SaliBot upgrade: Continue with Google ----------
+    async function finishLogin(data) {
+      authToken = data.token;
+      safeSet("auth_token", authToken);
+      await startApp(data.user);
+    }
+
+    async function onGoogleCredential(response) {
+      authError.textContent = "";
+      try {
+        const res = await fetch("/auth/google", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ credential: response.credential })
+        });
+        const data = await res.json();
+        if (!res.ok) { authError.textContent = data.error || "Google sign-in didn't work."; return; }
+        await finishLogin(data);
+      } catch {
+        authError.textContent = "Couldn't reach SaliBot. Please try again.";
+      }
+    }
+
+    async function initGoogle() {
+      let clientId = null;
+      try { clientId = (await (await fetch("/auth/config")).json()).google_client_id; } catch {}
+      if (!clientId) return;   // not set up: keep email + password only
+
+      // Google's script loads in the background; wait for it (up to 10 seconds)
+      for (let i = 0; i < 50 && !(window.google && google.accounts && google.accounts.id); i++) {
+        await new Promise(r => setTimeout(r, 200));
+      }
+      if (!(window.google && google.accounts && google.accounts.id)) return;
+
+      google.accounts.id.initialize({ client_id: clientId, callback: onGoogleCredential });
+      google.accounts.id.renderButton(document.getElementById("googleBtn"), {
+        theme: "filled_black", size: "large", shape: "pill", text: "continue_with",
+        width: Math.max(200, Math.min(320, window.innerWidth - 90))   // fits small phones too
+      });
+      document.getElementById("googleArea").hidden = false;
+    }
+    initGoogle();
+
     document.getElementById("authForm").onsubmit = async (e) => {
       e.preventDefault();
       authError.textContent = "";
@@ -1692,9 +1756,7 @@
           return;
         }
 
-        authToken = data.token;
-        safeSet("auth_token", authToken);
-        await startApp(data.user);
+        await finishLogin(data);
       } catch (err) {
         authError.textContent = "Couldn't reach SaliBot. Is the server running?";
       } finally {
