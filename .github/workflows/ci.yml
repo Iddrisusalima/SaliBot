@@ -37,3 +37,17 @@ jobs:
 
       - name: Check no .env file was committed
         run: test ! -f .env
+
+  docker:
+    # Builds the same image Hugging Face Spaces builds, so a broken Dockerfile
+    # shows up here first. Nothing is pushed anywhere.
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Build the Docker image
+        run: docker build -t salibot .
+
+      - name: Check the app can be imported inside the image
+        run: docker run --rm -e GOOGLE_API_KEY=ci -e TAVILY_API_KEY=ci -e LANGSMITH_TRACING=false salibot python -c "import app; print('app imports OK')"

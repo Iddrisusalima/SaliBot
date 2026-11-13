@@ -1,0 +1,67 @@
+name: Deploy to Hugging Face Spaces
+
+# Every push to main copies the app to the Hugging Face Space, which then
+# rebuilds the Docker image and restarts SaliBot.
+# Needs one GitHub secret: HF_TOKEN (a Hugging Face token with write access).
+# The API keys are NOT sent from here: they are saved as secrets in the Space.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      HF_SPACE: HF_USERNAME/SaliBot
+      HF_TOKEN: ${{ secrets.HF_TOKEN }}
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Copy only what the app needs
+        run: |
+          mkdir space
+          cp -r agent.py app.py database.py rag.py tools.py templates \
+                requirements.txt Dockerfile .dockerignore LICENSE space/
+
+      - name: Write the Space's README (Hugging Face reads its settings from the top)
+        run: |
+          cat > space/README.md <<'EOF'
+          ---
+          title: SaliBot
+          colorFrom: purple
+          colorTo: green
+          sdk: docker
+          app_port: 8080
+          pinned: false
+          license: apache-2.0
+          short_description: Agentic AI chatbot built with LangGraph and Gemini
+          ---
+
+          # SaliBot
+
+          An agentic AI chatbot that searches the web, reads your documents and
+          pictures, finds research papers, summarises YouTube videos and remembers
+          you. Built with LangGraph, FastAPI and Google Gemini.
+
+          Source code and full documentation:
+          https://github.com/Iddrisusalima/SaliBot
+          EOF
+          sed -i 's/^          //' space/README.md
+
+      - name: Push to the Space
+        run: |
+          if [ -z "$HF_TOKEN" ]; then
+            echo "HF_TOKEN secret is not set yet, skipping deploy."
+            exit 0
+          fi
+          cd space
+          git init -q -b main
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git add -A
+          git commit -q -m "Deploy ${GITHUB_SHA::7} from GitHub"
+          git push --force "https://user:${HF_TOKEN}@huggingface.co/spaces/${HF_SPACE}" main
