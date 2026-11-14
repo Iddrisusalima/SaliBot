@@ -50,7 +50,7 @@ nobody is using it, so the first visit can take about a minute to wake up.
 
 ## Demo
 
-> **[SALIBOT DEMO VIDEO](docs/demo/SaliBot-demo.mp4)** (4:46)
+> **[SALIBOT DEMO VIDEO](https://drive.google.com/file/d/1hDkR78ij9mJR7JgawCUqbo1yig924Oyk/view?usp=sharing)** (4:46)
 >
 > A walk through the live app: the landing page and sign-in, a web search for
 > today's news, a question answered from an uploaded resume, memory and maths in
