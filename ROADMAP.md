@@ -25,7 +25,7 @@ My plan for growing SaliBot from a course project into a production app.
 
 ## Stage 2 — Make it safe for other people (the real "production" step)
 - [x] **Accounts**: create account / log in / log out (email + password)
-- [ ] **"Continue with Google"** sign-in (next: no password to forget)
+- [x] **"Continue with Google"** sign-in (no password to forget)
 - [x] **Separate chats per user**: each user only sees and opens their own chats
 - [x] Replace the shared `CURRENT_THREAD_ID` in tools.py with per-request info
       (needed before many people chat at the *same moment*, or tools could
@@ -34,7 +34,7 @@ My plan for growing SaliBot from a course project into a production app.
       (free plan ≈ 20 requests/day on gemini-3.5-flash)
 - [x] **PostgreSQL** (free Neon) for accounts, chats, memories and agent state
 - [ ] Keep uploaded documents across restarts (hosted vector store or pgvector)
-- [ ] **Forgot password?** by email (reset link)
+- [ ] **Forgot password?** by email (less urgent now that Google sign-in exists)
 - [ ] Upload size limits + rate limits (so one person can't overload it)
 - [ ] Error monitoring (LangSmith traces + server logs)
 - [x] **Chat menu (⋯) in the sidebar**: rename, delete and **pin** a chat
