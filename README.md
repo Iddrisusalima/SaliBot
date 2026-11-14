@@ -50,6 +50,14 @@ nobody is using it, so the first visit can take about a minute to wake up.
 
 ## Demo
 
+> **[SALIBOT DEMO VIDEO](docs/demo/SaliBot-demo.mp4)** (4:46)
+>
+> A walk through the live app: the landing page and sign-in, a web search for
+> today's news, a question answered from an uploaded resume, memory and maths in
+> one question, a YouTube video summary, voice input, and the chat menu.
+>
+> Try it yourself: **[salibot.onrender.com](https://salibot.onrender.com)**
+
 ![Asked for recent research papers, SaliBot searched arXiv and the web and answered with links](docs/screenshots/research-papers.png)
 
 Asked for recent papers, the agent chose two tools on its own: the arXiv search
