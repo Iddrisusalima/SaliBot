@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ title }} - SaliBot</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0d0f15;
+      --panel: #13161f;
+      --border: #262b3b;
+      --text: #e8eaf2;
+      --muted: #8b91a7;
+      --teal: #2dd4bf;
+      --accent: linear-gradient(135deg, #8b5cf6, #2dd4bf);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+      line-height: 1.65;
+    }
+    .wrap { max-width: 760px; margin: 0 auto; padding: 0 20px 60px; }
+    nav { display: flex; justify-content: space-between; align-items: center; padding: 18px 0 8px; }
+    .logo { font-size: 20px; font-weight: 700; color: var(--text); text-decoration: none; }
+    .logo span { background: var(--accent); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    nav a.back { color: var(--muted); font-size: 14px; text-decoration: none; }
+    nav a.back:hover { color: var(--text); }
+    h1 { font-size: 32px; margin: 28px 0 4px; }
+    .updated { color: var(--muted); font-size: 14px; margin: 0 0 28px; }
+    h2 { font-size: 19px; margin: 30px 0 8px; }
+    p, li { color: #c9cddb; font-size: 15.5px; }
+    ul { padding-left: 22px; }
+    a { color: var(--teal); }
+    .box {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px 18px;
+      margin: 18px 0;
+    }
+    footer { border-top: 1px solid var(--border); margin-top: 40px; padding-top: 18px; color: var(--muted); font-size: 13px; }
+    footer a { color: var(--muted); margin-right: 14px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <nav>
+      <a class="logo" href="/">Sali<span>Bot</span></a>
+      <a class="back" href="/">&larr; Back to SaliBot</a>
+    </nav>
+
+    {% if page == "privacy" %}
+    <h1>Privacy policy</h1>
+    <p class="updated">Last updated: 14 November 2026</p>
+
+    <div class="box">
+      SaliBot is a personal portfolio project by Salima Iddrisu, built to learn and demonstrate
+      agentic AI. It is free, has no ads, and does not sell or share your data for marketing.
+    </div>
+
+    <h2>What SaliBot collects</h2>
+    <ul>
+      <li><b>Your account:</b> your name and email address. If you use "Continue with Google",
+          Google shares only your name, email address and profile picture link with SaliBot;
+          SaliBot never sees your Google password.</li>
+      <li><b>Your password</b>, if you create an email account. It is stored only as a salted,
+          one-way hash, never as plain text.</li>
+      <li><b>Your chats:</b> the messages you send and SaliBot's replies, chat titles and pins.</li>
+      <li><b>Things you ask SaliBot to remember</b>, until you ask it to forget them or delete the chat.</li>
+      <li><b>Files you upload</b> (documents and pictures) and voice recordings you send for transcription.</li>
+    </ul>
+
+    <h2>How it is used</h2>
+    <p>Only to run SaliBot for you: to answer your questions, keep your chat history, and let you log in.
+       Your chats are private to your account; other users cannot see them.</p>
+
+    <h2>Services that process your data</h2>
+    <p>To answer you, SaliBot sends the relevant text, files or audio to these services:</p>
+    <ul>
+      <li><b>Google Gemini</b> (Google LLC): writes the answers, reads pictures and documents,
+          transcribes voice and watches YouTube links you share.</li>
+      <li><b>Tavily</b>: runs web searches when SaliBot needs current information.</li>
+      <li><b>arXiv</b>: searched when you ask for research papers.</li>
+      <li><b>LangSmith</b> (LangChain): records how SaliBot handled each request, including the
+          messages, so problems can be found and fixed.</li>
+      <li><b>Neon</b>: the database where accounts, chats and memories are stored.</li>
+      <li><b>Render</b>: the server that runs SaliBot.</li>
+    </ul>
+    <p>Each of these services has its own privacy policy.</p>
+
+    <h2>Deleting your data</h2>
+    <ul>
+      <li>Delete any chat from its menu in the sidebar. This removes its messages, memories,
+          uploaded files and document search data.</li>
+      <li>Ask SaliBot to forget something you told it.</li>
+      <li>To delete your whole account, open an issue on
+          <a href="https://github.com/Iddrisusalima/SaliBot/issues" target="_blank" rel="noopener">SaliBot's GitHub page</a>
+          and it will be removed.</li>
+    </ul>
+
+    <h2>Please don't share sensitive information</h2>
+    <p>SaliBot is a learning project, not a professional service. Please don't upload or type
+       passwords, bank details, health records or other sensitive personal information.</p>
+
+    <h2>Contact</h2>
+    <p>Questions about privacy: open an issue on
+       <a href="https://github.com/Iddrisusalima/SaliBot/issues" target="_blank" rel="noopener">GitHub</a>.</p>
+
+    {% else %}
+    <h1>Terms of use</h1>
+    <p class="updated">Last updated: 14 November 2026</p>
+
+    <div class="box">
+      SaliBot is a free personal portfolio project by Salima Iddrisu. By using it you agree to these terms.
+    </div>
+
+    <h2>Using SaliBot</h2>
+    <ul>
+      <li>Use SaliBot for lawful purposes only.</li>
+      <li>Don't try to break, overload or misuse the service, or access other people's accounts.</li>
+      <li>Don't upload content you don't have the right to share.</li>
+    </ul>
+
+    <h2>AI answers can be wrong</h2>
+    <p>SaliBot's answers are written by an AI model and can be inaccurate or out of date.
+       Check important information yourself, and don't rely on SaliBot for medical, legal,
+       financial or other professional advice.</p>
+
+    <h2>Availability</h2>
+    <p>SaliBot runs on free services. It may be slow to wake up, have daily limits, change, or
+       stop without notice. It is provided "as is", without warranties of any kind.</p>
+
+    <h2>Your account</h2>
+    <p>You are responsible for keeping your login safe. Accounts that misuse the service may be removed.</p>
+
+    <h2>Privacy</h2>
+    <p>How your data is handled is explained in the <a href="/privacy">privacy policy</a>.</p>
+
+    <h2>Contact</h2>
+    <p>Questions: open an issue on
+       <a href="https://github.com/Iddrisusalima/SaliBot/issues" target="_blank" rel="noopener">GitHub</a>.</p>
+    {% endif %}
+
+    <footer>
+      <a href="/">SaliBot</a>
+      <a href="/privacy">Privacy policy</a>
+      <a href="/terms">Terms of use</a>
+    </footer>
+  </div>
+</body>
+</html>

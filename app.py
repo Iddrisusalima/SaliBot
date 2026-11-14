@@ -380,6 +380,19 @@ async def home(request: Request):
     )
 
 
+# SaliBot upgrade: privacy policy and terms (Google needs these to publish "Continue with Google")
+@app.get("/privacy")
+async def privacy(request: Request):
+    return templates.TemplateResponse(request=request, name="legal.html",
+                                      context={"page": "privacy", "title": "Privacy policy"})
+
+
+@app.get("/terms")
+async def terms(request: Request):
+    return templates.TemplateResponse(request=request, name="legal.html",
+                                      context={"page": "terms", "title": "Terms of use"})
+
+
 @app.get("/models")
 def models():
     return {"default": DEFAULT_MODEL, "models": sorted(ALLOWED_MODELS)}
